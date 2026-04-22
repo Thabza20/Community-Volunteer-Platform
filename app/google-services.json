@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "953793224826",
+    "firebase_url": "https://community-volunteer-plat-21271-default-rtdb.firebaseio.com",
+    "project_id": "community-volunteer-plat-21271",
+    "storage_bucket": "community-volunteer-plat-21271.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:953793224826:android:3fbfcc41abb6e7d256dbc3",
+        "android_client_info": {
+          "package_name": "com.error404.communityvolunteerplatform"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAwsSfQuesJxg0IyTMGXzjUxKPReTJmtw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
