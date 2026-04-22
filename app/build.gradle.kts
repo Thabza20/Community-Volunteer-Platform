@@ -5,11 +5,7 @@ plugins {
 
 android {
     namespace = "com.error404.communityvolunteerplatform"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.error404.communityvolunteerplatform"
