@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/nav_browse_opportunities" android:title="Browse Opportunities" />
+    <item android:id="@+id/nav_my_applications" android:title="My Applications" />
+    <item android:id="@+id/nav_passport" android:title="My Passport" />
+    <item android:id="@+id/nav_chats" android:title="Chats" />
+    <item android:id="@+id/nav_profile" android:title="Profile" />
+    <item android:id="@+id/nav_logout" android:title="Logout" />
+
+</menu>
