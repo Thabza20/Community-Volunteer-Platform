@@ -19,12 +19,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/tvErrorMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#FF0000"
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSignupHeading" />
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="72dp"
-        app:layout_constraintTop_toBottomOf="@id/tvSignupHeading"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tvErrorMessage"
         tools:layout_editor_absoluteX="16dp">
 
         <com.google.android.material.tabs.TabItem
@@ -79,6 +90,14 @@
                     android:layout_height="wrap_content"
                     android:hint="Password"
                     android:inputType="textPassword" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Min 8 chars, 1 number, 1 uppercase, 1 special char"
+                    android:textSize="10sp"
+                    android:textColor="#757575"
+                    android:layout_marginBottom="8dp"/>
 
                 <EditText
                     android:id="@+id/etOrgLocation"
@@ -154,6 +173,14 @@
                     android:hint="Password"
                     android:inputType="textPassword" />
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Min 8 chars, 1 number, 1 uppercase, 1 special char"
+                    android:textSize="10sp"
+                    android:textColor="#757575"
+                    android:layout_marginBottom="8dp"/>
+
                 <EditText
                     android:id="@+id/etVolPhone"
                     android:layout_width="match_parent"
@@ -212,6 +239,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Signup" />
+
+        <TextView
+            android:id="@+id/tvGoToLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp"
+            android:text="Already have an account? Login"
+            android:textColor="@color/design_default_color_primary" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
