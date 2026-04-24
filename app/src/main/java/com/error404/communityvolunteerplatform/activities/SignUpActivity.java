@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.error404.communityvolunteerplatform.R;
+import com.error404.communityvolunteerplatform.helpers.GmailOtpHelper;
 import com.error404.communityvolunteerplatform.models.Organisation;
 import com.error404.communityvolunteerplatform.models.User;
 import com.error404.communityvolunteerplatform.models.Volunteer;
@@ -38,157 +39,166 @@ public class SignUpActivity extends AppCompatActivity {
     private TextView tvErrorMessage, tvSignupHeading;
     private Button btnSignup;
 
-    // Firebase
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
-    // Organization Fields
-    private EditText etOrgName, etOrgEmail, etOrgPassword, etOrgLocation, etOrgDetails, etOrgNumber, etOrgPrimaryPhone, etOrgSecondaryPhone, etOrgOtp;
-    // Volunteer Fields
-    private EditText etVolName, etVolSurname, etVolEmail, etVolPassword, etVolPhone, etVolBio, etVolSkills, etVolOtp;
+    // ── Brevo OTP helper (one instance for the session) ──────────
+
+    private final GmailOtpHelper emailHelper = new GmailOtpHelper();
+
+    // Organisation fields
+    private EditText etOrgName, etOrgEmail, etOrgPassword, etOrgLocation, etOrgDetails,
+            etOrgNumber, etOrgPrimaryPhone, etOrgSecondaryPhone, etOrgOtp;
+    // Volunteer fields
+    private EditText etVolName, etVolSurname, etVolEmail, etVolPassword, etVolPhone,
+            etVolBio, etVolSkills, etVolOtp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
+        db    = FirebaseFirestore.getInstance();
 
-        // Initialize Views
-        tabLayout = findViewById(R.id.tabLayout);
-        layoutOrgForm = findViewById(R.id.layoutOrgForm);
-        layoutVolForm = findViewById(R.id.layoutVolForm);
-        cbPopia = findViewById(R.id.cbPopia);
-        TextView tvPopiaLink = findViewById(R.id.tvPopiaLink);
-        tvErrorMessage = findViewById(R.id.tvErrorMessage);
-        tvSignupHeading = findViewById(R.id.tvSignupHeading);
-        TextView tvGoToLogin = findViewById(R.id.tvGoToLogin);
-        btnSignup = findViewById(R.id.btnSignup);
+        initViews();
+        setupTabLayout();
+        setupPopiaLink(findViewById(R.id.tvPopiaLink));
+        findViewById(R.id.tvGoToLogin).setOnClickListener(v -> finish());
 
-        // Org EditTexts
-        etOrgName = findViewById(R.id.etOrgName);
-        etOrgEmail = findViewById(R.id.etOrgEmail);
-        etOrgPassword = findViewById(R.id.etOrgPassword);
-        etOrgLocation = findViewById(R.id.etOrgLocation);
-        etOrgDetails = findViewById(R.id.etOrgDetails);
-        etOrgNumber = findViewById(R.id.etOrgNumber);
-        etOrgPrimaryPhone = findViewById(R.id.etOrgPrimaryPhone);
-        etOrgSecondaryPhone = findViewById(R.id.etOrgSecondaryPhone);
-        etOrgOtp = findViewById(R.id.etOrgOtp);
+        btnSignup.setOnClickListener(v -> verifyOtpAndCreateAccount());
+
+        // "Request OTP" buttons — now send to email
         Button btnOrgRequestOtp = findViewById(R.id.btnOrgRequestOtp);
-
-        // Vol EditTexts
-        etVolName = findViewById(R.id.etVolName);
-        etVolSurname = findViewById(R.id.etVolSurname);
-        etVolEmail = findViewById(R.id.etVolEmail);
-        etVolPassword = findViewById(R.id.etVolPassword);
-        etVolPhone = findViewById(R.id.etVolPhone);
-        etVolBio = findViewById(R.id.etVolBio);
-        etVolSkills = findViewById(R.id.etVolSkills);
-        etVolOtp = findViewById(R.id.etVolOtp);
         Button btnVolRequestOtp = findViewById(R.id.btnVolRequestOtp);
-
-        // Setup Tab switching
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                tvErrorMessage.setVisibility(View.GONE); // Hide error on switch
-                if (tab.getPosition() == 0) {
-                    // Organization Tab
-                    layoutOrgForm.setVisibility(View.VISIBLE);
-                    layoutVolForm.setVisibility(View.GONE);
-                    tvSignupHeading.setText(R.string.organization_signup);
-                } else {
-                    // Volunteer Tab
-                    layoutOrgForm.setVisibility(View.GONE);
-                    layoutVolForm.setVisibility(View.VISIBLE);
-                    tvSignupHeading.setText(R.string.volunteer_signup);
-                }
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {}
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {}
-        });
-
-        // Set initial state explicitly
-        layoutOrgForm.setVisibility(View.VISIBLE);
-        layoutVolForm.setVisibility(View.GONE);
-        tvSignupHeading.setText(R.string.organization_signup);
-
-        // Setup POPIA link popup
-        setupPopiaLink(tvPopiaLink);
-
-        // Setup Signup button
-        btnSignup.setOnClickListener(v -> validateAndSignup());
-
-        // Setup Request OTP buttons
-        View.OnClickListener requestOtpListener = v -> Toast.makeText(this, R.string.otp_requested, Toast.LENGTH_SHORT).show();
-        btnOrgRequestOtp.setOnClickListener(requestOtpListener);
-        btnVolRequestOtp.setOnClickListener(requestOtpListener);
-
-        // Redirect to Login
-        tvGoToLogin.setOnClickListener(v -> finish());
+        btnOrgRequestOtp.setOnClickListener(v -> requestEmailOtp(true));
+        btnVolRequestOtp.setOnClickListener(v -> requestEmailOtp(false));
     }
 
-    private void validateAndSignup() {
-        boolean isOrg = tabLayout.getSelectedTabPosition() == 0;
-        tvErrorMessage.setVisibility(View.GONE);
+    // ─────────────────────────────────────────────────────────────
+    //  OTP via Brevo email
+    // ─────────────────────────────────────────────────────────────
 
+    /**
+     * Generates an OTP and emails it to the address the user typed in.
+     * @param isOrg true = Organisation tab, false = Volunteer tab
+     */
+    private void requestEmailOtp(boolean isOrg) {
+        String email = isOrg
+                ? etOrgEmail.getText().toString().trim()
+                : etVolEmail.getText().toString().trim();
+
+        String name = isOrg
+                ? etOrgName.getText().toString().trim()
+                : (etVolName.getText().toString().trim() + " " +
+                etVolSurname.getText().toString().trim()).trim();
+
+        if (email.isEmpty()) {
+            showError("Enter your email address first");
+            return;
+        }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            showError("Invalid email address");
+            return;
+        }
+
+        showError("Sending OTP to " + email + "…");
+
+        // Generate OTP then fire off the email
+        emailHelper.generateOtp();
+        emailHelper.sendOtp(email, name, new GmailOtpHelper.EmailCallback() {
+            @Override
+            public void onSuccess() {
+                showError("OTP sent! Check your inbox (and spam folder).");
+                Toast.makeText(SignUpActivity.this, "OTP sent to " + email, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(String error) {
+                showError("Failed to send OTP: " + error);
+            }
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Sign-up button handler
+    // ─────────────────────────────────────────────────────────────
+
+    private void verifyOtpAndCreateAccount() {
+        boolean isOrg = tabLayout.getSelectedTabPosition() == 0;
+
+        // 1. Validate all fields
         if (isOrg) {
-            // Secondary phone is now optional
-            if (isEmpty(etOrgName) || isEmpty(etOrgEmail) || isEmpty(etOrgPassword) || isEmpty(etOrgLocation) || 
-                isEmpty(etOrgDetails) || isEmpty(etOrgNumber) || isEmpty(etOrgPrimaryPhone) || isEmpty(etOrgOtp)) {
-                showError(getString(R.string.fill_all_fields));
+            if (isEmpty(etOrgName) || isEmpty(etOrgEmail) || isEmpty(etOrgPassword) ||
+                    isEmpty(etOrgLocation) || isEmpty(etOrgDetails) || isEmpty(etOrgNumber) ||
+                    isEmpty(etOrgPrimaryPhone) || isEmpty(etOrgOtp)) {
+                showError("Please fill in all required fields");
                 return;
             }
-            // Validate Password
             if (!isValidPassword(etOrgPassword.getText().toString())) {
-                showError(getString(R.string.password_requirements));
+                showError("Password must be 8+ chars, 1 uppercase, 1 number, 1 special char");
                 return;
             }
-            // Validate Primary Phone
             if (!isValidSAPhone(etOrgPrimaryPhone.getText().toString())) {
-                showError(getString(R.string.invalid_phone));
+                showError("Invalid primary phone number");
                 return;
             }
-            // Validate Secondary Phone ONLY if it is not empty
             String secPhone = etOrgSecondaryPhone.getText().toString().trim();
             if (!secPhone.isEmpty() && !isValidSAPhone(secPhone)) {
-                showError(getString(R.string.invalid_phone));
+                showError("Invalid secondary phone number");
                 return;
             }
         } else {
-            if (isEmpty(etVolName) || isEmpty(etVolSurname) || isEmpty(etVolEmail) || isEmpty(etVolPassword) || 
-                isEmpty(etVolPhone) || isEmpty(etVolBio) || isEmpty(etVolSkills) || isEmpty(etVolOtp)) {
-                showError(getString(R.string.fill_all_fields));
+            if (isEmpty(etVolName) || isEmpty(etVolSurname) || isEmpty(etVolEmail) ||
+                    isEmpty(etVolPassword) || isEmpty(etVolPhone) || isEmpty(etVolBio) ||
+                    isEmpty(etVolSkills) || isEmpty(etVolOtp)) {
+                showError("Please fill in all required fields");
                 return;
             }
-            // Validate Password
             if (!isValidPassword(etVolPassword.getText().toString())) {
-                showError(getString(R.string.password_requirements));
+                showError("Password requirements not met");
                 return;
             }
             if (!isValidSAPhone(etVolPhone.getText().toString())) {
-                showError(getString(R.string.invalid_phone));
+                showError("Invalid phone number");
                 return;
             }
         }
 
         if (!cbPopia.isChecked()) {
-            showError(getString(R.string.consent_popia));
+            showError("You must consent to the POPIA act");
             return;
         }
 
-        String email = isOrg ? etOrgEmail.getText().toString().trim() : etVolEmail.getText().toString().trim();
+        // 2. Verify OTP locally
+        String enteredOtp = isOrg
+                ? etOrgOtp.getText().toString().trim()
+                : etVolOtp.getText().toString().trim();
+
+        if (emailHelper.isExpired()) {
+            showError("OTP has expired — please request a new one");
+            return;
+        }
+        if (!emailHelper.verifyOtp(enteredOtp)) {
+            showError("Incorrect OTP. Please try again.");
+            return;
+        }
+
+        // 3. OTP is valid — create the Firebase account
+        emailHelper.invalidate(); // prevent re-use
+        createEmailPasswordAccount(isOrg);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Firebase account creation (unchanged logic, cleaned up)
+    // ─────────────────────────────────────────────────────────────
+
+    private void createEmailPasswordAccount(boolean isOrg) {
+        String email    = isOrg ? etOrgEmail.getText().toString().trim()    : etVolEmail.getText().toString().trim();
         String password = isOrg ? etOrgPassword.getText().toString().trim() : etVolPassword.getText().toString().trim();
 
         btnSignup.setEnabled(false);
-        showError(getString(R.string.creating_account));
+        showError("Creating account…");
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
@@ -197,30 +207,34 @@ public class SignUpActivity extends AppCompatActivity {
                         saveUserDataToFirestore(uid, isOrg);
                     } else {
                         btnSignup.setEnabled(true);
-                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                        showError(getString(R.string.signup_failed, errorMsg));
+                        showError("Signup failed: " +
+                                (task.getException() != null ? task.getException().getMessage() : "Unknown error"));
                     }
                 });
     }
 
+    // ─────────────────────────────────────────────────────────────
+    //  Firestore save methods (unchanged)
+    // ─────────────────────────────────────────────────────────────
+
     private void saveUserDataToFirestore(String uid, boolean isOrg) {
-        String email = isOrg ? etOrgEmail.getText().toString().trim() : etVolEmail.getText().toString().trim();
+        String email = isOrg
+                ? etOrgEmail.getText().toString().trim()
+                : etVolEmail.getText().toString().trim();
         String role = isOrg ? "organisation" : "volunteer";
 
         User user = new User(uid, role, email);
         user.setPopiaAccepted(true);
+        user.setEmailVerified(true); // they verified via OTP
 
         db.collection("users").document(uid).set(user)
                 .addOnSuccessListener(aVoid -> {
-                    if (isOrg) {
-                        saveOrganisationProfile(uid);
-                    } else {
-                        saveVolunteerProfile(uid);
-                    }
+                    if (isOrg) saveOrganisationProfile(uid);
+                    else       saveVolunteerProfile(uid);
                 })
                 .addOnFailureListener(e -> {
                     btnSignup.setEnabled(true);
-                    showError(getString(R.string.error_saving_user, e.getMessage()));
+                    showError("Error saving user: " + e.getMessage());
                 });
     }
 
@@ -231,8 +245,8 @@ public class SignUpActivity extends AppCompatActivity {
                 etOrgEmail.getText().toString().trim(),
                 etOrgLocation.getText().toString().trim(),
                 etOrgPrimaryPhone.getText().toString().trim(),
-                etOrgNumber.getText().toString().trim()
-        );
+                etOrgNumber.getText().toString().trim());
+
         org.setOrgDetails(etOrgDetails.getText().toString().trim());
         String secPhone = etOrgSecondaryPhone.getText().toString().trim();
         if (!secPhone.isEmpty()) org.setSecondaryPhoneNumber(secPhone);
@@ -244,7 +258,7 @@ public class SignUpActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     btnSignup.setEnabled(true);
-                    showError(getString(R.string.error_saving_profile, e.getMessage()));
+                    showError("Error saving profile: " + e.getMessage());
                 });
     }
 
@@ -254,8 +268,8 @@ public class SignUpActivity extends AppCompatActivity {
                 etVolName.getText().toString().trim(),
                 etVolSurname.getText().toString().trim(),
                 etVolEmail.getText().toString().trim(),
-                ""
-        );
+                "");
+
         vol.setPhoneNumber(etVolPhone.getText().toString().trim());
         vol.setBio(etVolBio.getText().toString().trim());
 
@@ -272,8 +286,68 @@ public class SignUpActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     btnSignup.setEnabled(true);
-                    showError(getString(R.string.error_saving_profile, e.getMessage()));
+                    showError("Error saving profile: " + e.getMessage());
                 });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  View init & helpers (unchanged)
+    // ─────────────────────────────────────────────────────────────
+
+    private void initViews() {
+        tabLayout       = findViewById(R.id.tabLayout);
+        layoutOrgForm   = findViewById(R.id.layoutOrgForm);
+        layoutVolForm   = findViewById(R.id.layoutVolForm);
+        cbPopia         = findViewById(R.id.cbPopia);
+        tvErrorMessage  = findViewById(R.id.tvErrorMessage);
+        tvSignupHeading = findViewById(R.id.tvSignupHeading);
+        btnSignup       = findViewById(R.id.btnSignup);
+
+        // Organisation
+        etOrgName           = findViewById(R.id.etOrgName);
+        etOrgEmail          = findViewById(R.id.etOrgEmail);
+        etOrgPassword       = findViewById(R.id.etOrgPassword);
+        etOrgLocation       = findViewById(R.id.etOrgLocation);
+        etOrgDetails        = findViewById(R.id.etOrgDetails);
+        etOrgNumber         = findViewById(R.id.etOrgNumber);
+        etOrgPrimaryPhone   = findViewById(R.id.etOrgPrimaryPhone);
+        etOrgSecondaryPhone = findViewById(R.id.etOrgSecondaryPhone);
+        etOrgOtp            = findViewById(R.id.etOrgOtp);
+
+        // Volunteer
+        etVolName    = findViewById(R.id.etVolName);
+        etVolSurname = findViewById(R.id.etVolSurname);
+        etVolEmail   = findViewById(R.id.etVolEmail);
+        etVolPassword= findViewById(R.id.etVolPassword);
+        etVolPhone   = findViewById(R.id.etVolPhone);
+        etVolBio     = findViewById(R.id.etVolBio);
+        etVolSkills  = findViewById(R.id.etVolSkills);
+        etVolOtp     = findViewById(R.id.etVolOtp);
+    }
+
+    private void setupTabLayout() {
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                tvErrorMessage.setVisibility(View.GONE);
+                if (tab.getPosition() == 0) {
+                    layoutOrgForm.setVisibility(View.VISIBLE);
+                    layoutVolForm.setVisibility(View.GONE);
+                    tvSignupHeading.setText(R.string.organization_signup);
+                } else {
+                    layoutOrgForm.setVisibility(View.GONE);
+                    layoutVolForm.setVisibility(View.VISIBLE);
+                    tvSignupHeading.setText(R.string.volunteer_signup);
+                }
+                // Reset OTP state when switching tabs
+                emailHelper.invalidate();
+            }
+            @Override public void onTabUnselected(TabLayout.Tab tab) {}
+            @Override public void onTabReselected(TabLayout.Tab tab) {}
+        });
+        layoutOrgForm.setVisibility(View.VISIBLE);
+        layoutVolForm.setVisibility(View.GONE);
+        tvSignupHeading.setText(R.string.organization_signup);
     }
 
     private void showError(String message) {
@@ -286,14 +360,11 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private boolean isValidPassword(String password) {
-        // Minimum 8 characters, at least one number, at least one uppercase, at least one special character
         String regex = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$";
         return Pattern.compile(regex).matcher(password).matches();
     }
 
     private boolean isValidSAPhone(String phone) {
-        // Regex for South African phone numbers:
-        // Starts with +27 or 0, followed by 9 digits starting with 6, 7, or 8.
         String regex = "^(\\+27|0)[6-8][0-9]{8}$";
         return Pattern.compile(regex).matcher(phone).matches();
     }
@@ -301,17 +372,11 @@ public class SignUpActivity extends AppCompatActivity {
     private void setupPopiaLink(TextView tvPopiaLink) {
         String text = "I consent according to the POPIA act";
         SpannableString ss = new SpannableString(text);
-
         ClickableSpan clickableSpan = new ClickableSpan() {
             @Override
-            public void onClick(@NonNull View widget) {
-                showPopiaDialog();
-            }
+            public void onClick(@NonNull View widget) { showPopiaDialog(); }
         };
-
-        // Make "POPIA" clickable (Indices 25 to 30)
         ss.setSpan(clickableSpan, 25, 30, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
         tvPopiaLink.setText(ss);
         tvPopiaLink.setMovementMethod(LinkMovementMethod.getInstance());
     }

@@ -49,6 +49,11 @@
             android:exported="false"
             android:label="Opportunity Details"
             android:parentActivityName=".activities.BrowseOpportunitiesActivity" />
+
+        <meta-data
+            android:name="com.google.android.gms.recaptcha.RECAPTCHA_SITE_KEY"
+            android:value="6LcYHpkqAAAAAAnPixG3F-0BZqR6gTHPZyD6zS_z" />
+
     </application>
 
 </manifest>
