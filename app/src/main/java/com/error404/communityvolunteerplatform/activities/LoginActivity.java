@@ -113,15 +113,22 @@ public class LoginActivity extends AppCompatActivity {
                         String selectedTab = tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString().toLowerCase();
 
                         // Basic security: check if user is logging into the correct tab
-                        if (role != null && role.equals(selectedTab)) {
-                            if (role.equals("volunteer")) {
+                        boolean isVolunteer = "volunteer".equals(role);
+                        boolean isOrg = "organisation".equals(role) || "organization".equals(role);
+                        boolean isAdmin = "admin".equals(role);
+
+                        boolean tabMatch = (isVolunteer && "volunteer".equals(selectedTab)) ||
+                                           (isOrg && ("organisation".equals(selectedTab) || "organization".equals(selectedTab))) ||
+                                           (isAdmin && "admin".equals(selectedTab));
+
+                        if (role != null && tabMatch) {
+                            if (isVolunteer) {
                                 startActivity(new Intent(LoginActivity.this, VolunteerDashboardActivity.class));
                                 finish();
-                            } else if (role.equals("organisation")) {
-                                // TODO: Create OrganizationDashboardActivity
-                                Toast.makeText(this, "Organization Dashboard coming soon", Toast.LENGTH_SHORT).show();
-                                btnLogin.setEnabled(true);
-                            } else if (role.equals("admin")) {
+                            } else if (isOrg) {
+                                startActivity(new Intent(LoginActivity.this, OrganizationDashboardActivity.class));
+                                finish();
+                            } else if (isAdmin) {
                                 // TODO: Create AdminDashboardActivity
                                 Toast.makeText(this, "Admin Dashboard coming soon", Toast.LENGTH_SHORT).show();
                                 btnLogin.setEnabled(true);

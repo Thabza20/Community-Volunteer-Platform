@@ -11,10 +11,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CommunityVolunteerPlatform">
+
         <activity
             android:name=".activities.SignUpActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
         <activity
             android:name=".activities.LoginActivity"
             android:exported="true"
@@ -24,12 +26,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activities.MainActivity"
             android:exported="false" />
         <activity
             android:name=".activities.VolunteerDashboardActivity"
             android:exported="false" />
+
+        <!-- ADDED: Organization Dashboard Activity -->
+        <activity
+            android:name=".activities.OrganizationDashboardActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
     </application>
 
 </manifest>

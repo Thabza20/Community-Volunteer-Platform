@@ -17,4 +17,26 @@
     <string name="vol_reg_success">Volunteer Registration Successful!</string>
     <string name="popia_details_title">POPIA Details</string>
     <string name="popia_details_message">to do add POPIA details</string>
+
+    <!-- Role Strings -->
+    <string name="role_admin">Admin</string>
+    <string name="role_volunteer">Volunteer</string>
+    <string name="role_organisation">Organisation</string>
+
+    <!-- Dashboard Strings -->
+    <string name="organization_dashboard">Organization Dashboard</string>
+    <string name="profile">Profile</string>
+    <string name="overview">Overview</string>
+    <string name="quick_actions">Quick Actions</string>
+    <string name="active_opportunities">Active Opportunities</string>
+    <string name="total_volunteers">Total Volunteers</string>
+    <string name="total_projects">Total Projects</string>
+    <string name="pending_applications">Pending</string>
+    <string name="approved_applications">Approved</string>
+    <string name="completion_rate">Completion Rate</string>
+    <string name="create_new_opportunity">Create New Opportunity</string>
+    <string name="view_manage_opportunities">View &amp; Manage All Opportunities</string>
+    <string name="default_zero">0</string>
+    <string name="default_zero_percent">0%</string>
+
 </resources>
