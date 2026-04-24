@@ -43,9 +43,11 @@ public class SignUpActivity extends AppCompatActivity {
     private FirebaseFirestore db;
 
     // Organization Fields
-    private EditText etOrgName, etOrgEmail, etOrgPassword, etOrgLocation, etOrgDetails, etOrgNumber, etOrgPrimaryPhone, etOrgSecondaryPhone;
+    private EditText etOrgName, etOrgEmail, etOrgPassword, etOrgLocation, etOrgDetails, etOrgNumber, etOrgPrimaryPhone, etOrgSecondaryPhone, etOrgOtp;
+    private Button btnOrgRequestOtp;
     // Volunteer Fields
-    private EditText etVolName, etVolSurname, etVolEmail, etVolPassword, etVolPhone, etVolBio, etVolSkills;
+    private EditText etVolName, etVolSurname, etVolEmail, etVolPassword, etVolPhone, etVolBio, etVolSkills, etVolOtp;
+    private Button btnVolRequestOtp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +78,8 @@ public class SignUpActivity extends AppCompatActivity {
         etOrgNumber = findViewById(R.id.etOrgNumber);
         etOrgPrimaryPhone = findViewById(R.id.etOrgPrimaryPhone);
         etOrgSecondaryPhone = findViewById(R.id.etOrgSecondaryPhone);
+        etOrgOtp = findViewById(R.id.etOrgOtp);
+        btnOrgRequestOtp = findViewById(R.id.btnOrgRequestOtp);
 
         // Vol EditTexts
         etVolName = findViewById(R.id.etVolName);
@@ -85,6 +89,8 @@ public class SignUpActivity extends AppCompatActivity {
         etVolPhone = findViewById(R.id.etVolPhone);
         etVolBio = findViewById(R.id.etVolBio);
         etVolSkills = findViewById(R.id.etVolSkills);
+        etVolOtp = findViewById(R.id.etVolOtp);
+        btnVolRequestOtp = findViewById(R.id.btnVolRequestOtp);
 
         // Setup Tab switching
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -124,6 +130,13 @@ public class SignUpActivity extends AppCompatActivity {
             validateAndSignup();
         });
 
+        // Setup Request OTP buttons
+        View.OnClickListener requestOtpListener = v -> {
+            Toast.makeText(this, "OTP requested. Please check your messages.", Toast.LENGTH_SHORT).show();
+        };
+        btnOrgRequestOtp.setOnClickListener(requestOtpListener);
+        btnVolRequestOtp.setOnClickListener(requestOtpListener);
+
         // Redirect to Login
         tvGoToLogin.setOnClickListener(v -> {
             finish();
@@ -137,7 +150,7 @@ public class SignUpActivity extends AppCompatActivity {
         if (isOrg) {
             // Secondary phone is now optional
             if (isEmpty(etOrgName) || isEmpty(etOrgEmail) || isEmpty(etOrgPassword) || isEmpty(etOrgLocation) || 
-                isEmpty(etOrgDetails) || isEmpty(etOrgNumber) || isEmpty(etOrgPrimaryPhone)) {
+                isEmpty(etOrgDetails) || isEmpty(etOrgNumber) || isEmpty(etOrgPrimaryPhone) || isEmpty(etOrgOtp)) {
                 showError("Please fill in all fields");
                 return;
             }
@@ -159,7 +172,7 @@ public class SignUpActivity extends AppCompatActivity {
             }
         } else {
             if (isEmpty(etVolName) || isEmpty(etVolSurname) || isEmpty(etVolEmail) || isEmpty(etVolPassword) || 
-                isEmpty(etVolPhone) || isEmpty(etVolBio) || isEmpty(etVolSkills)) {
+                isEmpty(etVolPhone) || isEmpty(etVolBio) || isEmpty(etVolSkills) || isEmpty(etVolOtp)) {
                 showError("Please fill in all fields");
                 return;
             }
