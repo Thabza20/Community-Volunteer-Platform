@@ -12,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.error404.communityvolunteerplatform.R;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.regex.Pattern;
 
@@ -22,10 +24,18 @@ public class LoginActivity extends AppCompatActivity {
     private EditText etLoginEmail, etLoginPassword;
     private Button btnLogin;
 
+    // Firebase
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // Initialize Firebase
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         // Initialize Views
         tabLayout = findViewById(R.id.tabLayout);
@@ -80,9 +90,57 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Placeholder for authentication logic
-        String userType = tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString();
-        Toast.makeText(this, "Logging in as " + userType, Toast.LENGTH_SHORT).show();
+        btnLogin.setEnabled(false);
+        showError("Authenticating...");
+
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        String uid = mAuth.getCurrentUser().getUid();
+                        checkUserRoleAndNavigate(uid);
+                    } else {
+                        btnLogin.setEnabled(true);
+                        showError("Login failed: " + task.getException().getMessage());
+                    }
+                });
+    }
+
+    private void checkUserRoleAndNavigate(String uid) {
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String role = documentSnapshot.getString("role");
+                        String selectedTab = tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString().toLowerCase();
+
+                        // Basic security: check if user is logging into the correct tab
+                        if (role != null && role.equals(selectedTab)) {
+                            if (role.equals("volunteer")) {
+                                startActivity(new Intent(LoginActivity.this, VolunteerDashboardActivity.class));
+                                finish();
+                            } else if (role.equals("organisation")) {
+                                // TODO: Create OrganizationDashboardActivity
+                                Toast.makeText(this, "Organization Dashboard coming soon", Toast.LENGTH_SHORT).show();
+                                btnLogin.setEnabled(true);
+                            } else if (role.equals("admin")) {
+                                // TODO: Create AdminDashboardActivity
+                                Toast.makeText(this, "Admin Dashboard coming soon", Toast.LENGTH_SHORT).show();
+                                btnLogin.setEnabled(true);
+                            }
+                        } else {
+                            mAuth.signOut();
+                            btnLogin.setEnabled(true);
+                            showError("Access Denied: You are not registered as a " + selectedTab);
+                        }
+                    } else {
+                        mAuth.signOut();
+                        btnLogin.setEnabled(true);
+                        showError("User data not found.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    btnLogin.setEnabled(true);
+                    showError("Error checking role: " + e.getMessage());
+                });
     }
 
     private boolean isValidPassword(String password) {
