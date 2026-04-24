@@ -127,8 +127,7 @@ public class VolunteerDashboardActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_browse_opportunities) {
-            // TODO: startActivity(new Intent(this, BrowseOpportunitiesActivity.class));
-            Toast.makeText(this, "Browse Opportunities", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, BrowseOpportunitiesActivity.class));
         } else if (id == R.id.nav_my_applications) {
             // TODO: startActivity(new Intent(this, MyApplicationsActivity.class));
             Toast.makeText(this, "My Applications", Toast.LENGTH_SHORT).show();

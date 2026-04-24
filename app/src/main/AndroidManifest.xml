@@ -34,12 +34,21 @@
             android:name=".activities.VolunteerDashboardActivity"
             android:exported="false" />
 
-        <!-- ADDED: Organization Dashboard Activity -->
         <activity
             android:name=".activities.OrganizationDashboardActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".activities.BrowseOpportunitiesActivity"
+            android:exported="false"
+            android:label="Browse Opportunities"
+            android:parentActivityName=".activities.VolunteerDashboardActivity" />
+        <activity
+            android:name=".activities.OpportunityDetailsActivity"
+            android:exported="false"
+            android:label="Opportunity Details"
+            android:parentActivityName=".activities.BrowseOpportunitiesActivity" />
     </application>
 
 </manifest>
