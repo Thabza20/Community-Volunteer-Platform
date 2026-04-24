@@ -9,6 +9,7 @@ public class Organisation {
     private String location;
     private String logoUrl;              // Firebase Storage URL — nullable (null = system avatar)
     private String orgDetails;          // general description / about
+    private String orgNumber;
     private String primaryPhoneNumber;
     private String secondaryPhoneNumber; // nullable
     private String status;              // "pending" | "approved"
@@ -18,12 +19,13 @@ public class Organisation {
     public Organisation() {} // Required for Firestore
 
     public Organisation(String userId, String orgName, String email,
-                        String location, String primaryPhoneNumber) {
+                        String location, String primaryPhoneNumber, String orgNumber) {
         this.userId = userId;
         this.orgName = orgName;
         this.email = email;
         this.location = location;
         this.primaryPhoneNumber = primaryPhoneNumber;
+        this.orgNumber = orgNumber;
         this.status = "pending";
         this.createdAt = Timestamp.now();
         this.updatedAt = Timestamp.now();
@@ -46,6 +48,9 @@ public class Organisation {
 
     public String getOrgDetails() { return orgDetails; }
     public void setOrgDetails(String orgDetails) { this.orgDetails = orgDetails; }
+
+    public String getOrgNumber() { return orgNumber; }
+    public void setOrgNumber(String orgNumber) { this.orgNumber = orgNumber; }
 
     public String getPrimaryPhoneNumber() { return primaryPhoneNumber; }
     public void setPrimaryPhoneNumber(String primaryPhoneNumber) { this.primaryPhoneNumber = primaryPhoneNumber; }

@@ -18,8 +18,16 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.error404.communityvolunteerplatform.R;
+import com.error404.communityvolunteerplatform.models.Organisation;
+import com.error404.communityvolunteerplatform.models.User;
+import com.error404.communityvolunteerplatform.models.Volunteer;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class SignUpActivity extends AppCompatActivity {
@@ -30,6 +38,10 @@ public class SignUpActivity extends AppCompatActivity {
     private TextView tvPopiaLink, tvErrorMessage, tvSignupHeading, tvGoToLogin;
     private Button btnSignup;
 
+    // Firebase
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+
     // Organization Fields
     private EditText etOrgName, etOrgEmail, etOrgPassword, etOrgLocation, etOrgDetails, etOrgNumber, etOrgPrimaryPhone, etOrgSecondaryPhone;
     // Volunteer Fields
@@ -39,6 +51,10 @@ public class SignUpActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
+
+        // Initialize Firebase
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         // Initialize Views
         tabLayout = findViewById(R.id.tabLayout);
@@ -163,8 +179,95 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
 
-        String userType = isOrg ? "Organization" : "Volunteer";
-        Toast.makeText(this, "Signup successful as " + userType, Toast.LENGTH_LONG).show();
+        String email = isOrg ? etOrgEmail.getText().toString().trim() : etVolEmail.getText().toString().trim();
+        String password = isOrg ? etOrgPassword.getText().toString().trim() : etVolPassword.getText().toString().trim();
+
+        btnSignup.setEnabled(false);
+        showError("Creating account...");
+
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        String uid = mAuth.getCurrentUser().getUid();
+                        saveUserDataToFirestore(uid, isOrg);
+                    } else {
+                        btnSignup.setEnabled(true);
+                        showError("Signup failed: " + task.getException().getMessage());
+                    }
+                });
+    }
+
+    private void saveUserDataToFirestore(String uid, boolean isOrg) {
+        String email = isOrg ? etOrgEmail.getText().toString().trim() : etVolEmail.getText().toString().trim();
+        String role = isOrg ? "organisation" : "volunteer";
+
+        User user = new User(uid, role, email);
+        user.setPopiaAccepted(true);
+
+        db.collection("users").document(uid).set(user)
+                .addOnSuccessListener(aVoid -> {
+                    if (isOrg) {
+                        saveOrganisationProfile(uid);
+                    } else {
+                        saveVolunteerProfile(uid);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    btnSignup.setEnabled(true);
+                    showError("Error saving user: " + e.getMessage());
+                });
+    }
+
+    private void saveOrganisationProfile(String uid) {
+        Organisation org = new Organisation(
+                uid,
+                etOrgName.getText().toString().trim(),
+                etOrgEmail.getText().toString().trim(),
+                etOrgLocation.getText().toString().trim(),
+                etOrgPrimaryPhone.getText().toString().trim(),
+                etOrgNumber.getText().toString().trim()
+        );
+        org.setOrgDetails(etOrgDetails.getText().toString().trim());
+        String secPhone = etOrgSecondaryPhone.getText().toString().trim();
+        if (!secPhone.isEmpty()) org.setSecondaryPhoneNumber(secPhone);
+
+        db.collection("organisations").document(uid).set(org)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Organization Registration Successful!", Toast.LENGTH_LONG).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    btnSignup.setEnabled(true);
+                    showError("Error saving profile: " + e.getMessage());
+                });
+    }
+
+    private void saveVolunteerProfile(String uid) {
+        Volunteer vol = new Volunteer(
+                uid,
+                etVolName.getText().toString().trim(),
+                etVolSurname.getText().toString().trim(),
+                etVolEmail.getText().toString().trim(),
+                ""
+        );
+        vol.setPhoneNumber(etVolPhone.getText().toString().trim());
+        vol.setBio(etVolBio.getText().toString().trim());
+
+        String skillsStr = etVolSkills.getText().toString().trim();
+        if (!skillsStr.isEmpty()) {
+            List<String> skillsList = new ArrayList<>(Arrays.asList(skillsStr.split("\\s*,\\s*")));
+            vol.setSkills(skillsList);
+        }
+
+        db.collection("volunteers").document(uid).set(vol)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Volunteer Registration Successful!", Toast.LENGTH_LONG).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    btnSignup.setEnabled(true);
+                    showError("Error saving profile: " + e.getMessage());
+                });
     }
 
     private void showError(String message) {
