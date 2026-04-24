@@ -2,4 +2,19 @@
     <string name="app_name">Community Volunteer Platform</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="organization_signup">Organization Signup</string>
+    <string name="volunteer_signup">Volunteer Signup</string>
+    <string name="otp_requested">OTP requested. Please check your messages.</string>
+    <string name="fill_all_fields">Please fill in all fields</string>
+    <string name="password_requirements">Password does not meet requirements</string>
+    <string name="invalid_phone">invalid phone number</string>
+    <string name="consent_popia">Please consent to POPIA act</string>
+    <string name="creating_account">Creating account...</string>
+    <string name="signup_failed">Signup failed: %1$s</string>
+    <string name="error_saving_user">Error saving user: %1$s</string>
+    <string name="org_reg_success">Organization Registration Successful!</string>
+    <string name="error_saving_profile">Error saving profile: %1$s</string>
+    <string name="vol_reg_success">Volunteer Registration Successful!</string>
+    <string name="popia_details_title">POPIA Details</string>
+    <string name="popia_details_message">to do add POPIA details</string>
 </resources>

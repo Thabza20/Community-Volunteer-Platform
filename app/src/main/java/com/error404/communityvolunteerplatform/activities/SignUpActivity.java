@@ -35,7 +35,7 @@ public class SignUpActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private LinearLayout layoutOrgForm, layoutVolForm;
     private CheckBox cbPopia;
-    private TextView tvPopiaLink, tvErrorMessage, tvSignupHeading, tvGoToLogin;
+    private TextView tvErrorMessage, tvSignupHeading;
     private Button btnSignup;
 
     // Firebase
@@ -44,10 +44,8 @@ public class SignUpActivity extends AppCompatActivity {
 
     // Organization Fields
     private EditText etOrgName, etOrgEmail, etOrgPassword, etOrgLocation, etOrgDetails, etOrgNumber, etOrgPrimaryPhone, etOrgSecondaryPhone, etOrgOtp;
-    private Button btnOrgRequestOtp;
     // Volunteer Fields
     private EditText etVolName, etVolSurname, etVolEmail, etVolPassword, etVolPhone, etVolBio, etVolSkills, etVolOtp;
-    private Button btnVolRequestOtp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,10 +61,10 @@ public class SignUpActivity extends AppCompatActivity {
         layoutOrgForm = findViewById(R.id.layoutOrgForm);
         layoutVolForm = findViewById(R.id.layoutVolForm);
         cbPopia = findViewById(R.id.cbPopia);
-        tvPopiaLink = findViewById(R.id.tvPopiaLink);
+        TextView tvPopiaLink = findViewById(R.id.tvPopiaLink);
         tvErrorMessage = findViewById(R.id.tvErrorMessage);
         tvSignupHeading = findViewById(R.id.tvSignupHeading);
-        tvGoToLogin = findViewById(R.id.tvGoToLogin);
+        TextView tvGoToLogin = findViewById(R.id.tvGoToLogin);
         btnSignup = findViewById(R.id.btnSignup);
 
         // Org EditTexts
@@ -79,7 +77,7 @@ public class SignUpActivity extends AppCompatActivity {
         etOrgPrimaryPhone = findViewById(R.id.etOrgPrimaryPhone);
         etOrgSecondaryPhone = findViewById(R.id.etOrgSecondaryPhone);
         etOrgOtp = findViewById(R.id.etOrgOtp);
-        btnOrgRequestOtp = findViewById(R.id.btnOrgRequestOtp);
+        Button btnOrgRequestOtp = findViewById(R.id.btnOrgRequestOtp);
 
         // Vol EditTexts
         etVolName = findViewById(R.id.etVolName);
@@ -90,7 +88,7 @@ public class SignUpActivity extends AppCompatActivity {
         etVolBio = findViewById(R.id.etVolBio);
         etVolSkills = findViewById(R.id.etVolSkills);
         etVolOtp = findViewById(R.id.etVolOtp);
-        btnVolRequestOtp = findViewById(R.id.btnVolRequestOtp);
+        Button btnVolRequestOtp = findViewById(R.id.btnVolRequestOtp);
 
         // Setup Tab switching
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -101,12 +99,12 @@ public class SignUpActivity extends AppCompatActivity {
                     // Organization Tab
                     layoutOrgForm.setVisibility(View.VISIBLE);
                     layoutVolForm.setVisibility(View.GONE);
-                    tvSignupHeading.setText("Organization Signup");
+                    tvSignupHeading.setText(R.string.organization_signup);
                 } else {
                     // Volunteer Tab
                     layoutOrgForm.setVisibility(View.GONE);
                     layoutVolForm.setVisibility(View.VISIBLE);
-                    tvSignupHeading.setText("Volunteer Signup");
+                    tvSignupHeading.setText(R.string.volunteer_signup);
                 }
             }
 
@@ -120,27 +118,21 @@ public class SignUpActivity extends AppCompatActivity {
         // Set initial state explicitly
         layoutOrgForm.setVisibility(View.VISIBLE);
         layoutVolForm.setVisibility(View.GONE);
-        tvSignupHeading.setText("Organization Signup");
+        tvSignupHeading.setText(R.string.organization_signup);
 
         // Setup POPIA link popup
-        setupPopiaLink();
+        setupPopiaLink(tvPopiaLink);
 
         // Setup Signup button
-        btnSignup.setOnClickListener(v -> {
-            validateAndSignup();
-        });
+        btnSignup.setOnClickListener(v -> validateAndSignup());
 
         // Setup Request OTP buttons
-        View.OnClickListener requestOtpListener = v -> {
-            Toast.makeText(this, "OTP requested. Please check your messages.", Toast.LENGTH_SHORT).show();
-        };
+        View.OnClickListener requestOtpListener = v -> Toast.makeText(this, R.string.otp_requested, Toast.LENGTH_SHORT).show();
         btnOrgRequestOtp.setOnClickListener(requestOtpListener);
         btnVolRequestOtp.setOnClickListener(requestOtpListener);
 
         // Redirect to Login
-        tvGoToLogin.setOnClickListener(v -> {
-            finish();
-        });
+        tvGoToLogin.setOnClickListener(v -> finish());
     }
 
     private void validateAndSignup() {
@@ -151,44 +143,44 @@ public class SignUpActivity extends AppCompatActivity {
             // Secondary phone is now optional
             if (isEmpty(etOrgName) || isEmpty(etOrgEmail) || isEmpty(etOrgPassword) || isEmpty(etOrgLocation) || 
                 isEmpty(etOrgDetails) || isEmpty(etOrgNumber) || isEmpty(etOrgPrimaryPhone) || isEmpty(etOrgOtp)) {
-                showError("Please fill in all fields");
+                showError(getString(R.string.fill_all_fields));
                 return;
             }
             // Validate Password
             if (!isValidPassword(etOrgPassword.getText().toString())) {
-                showError("Password does not meet requirements");
+                showError(getString(R.string.password_requirements));
                 return;
             }
             // Validate Primary Phone
             if (!isValidSAPhone(etOrgPrimaryPhone.getText().toString())) {
-                showError("invalid phone number");
+                showError(getString(R.string.invalid_phone));
                 return;
             }
             // Validate Secondary Phone ONLY if it is not empty
             String secPhone = etOrgSecondaryPhone.getText().toString().trim();
             if (!secPhone.isEmpty() && !isValidSAPhone(secPhone)) {
-                showError("invalid phone number");
+                showError(getString(R.string.invalid_phone));
                 return;
             }
         } else {
             if (isEmpty(etVolName) || isEmpty(etVolSurname) || isEmpty(etVolEmail) || isEmpty(etVolPassword) || 
                 isEmpty(etVolPhone) || isEmpty(etVolBio) || isEmpty(etVolSkills) || isEmpty(etVolOtp)) {
-                showError("Please fill in all fields");
+                showError(getString(R.string.fill_all_fields));
                 return;
             }
             // Validate Password
             if (!isValidPassword(etVolPassword.getText().toString())) {
-                showError("Password does not meet requirements");
+                showError(getString(R.string.password_requirements));
                 return;
             }
             if (!isValidSAPhone(etVolPhone.getText().toString())) {
-                showError("invalid phone number");
+                showError(getString(R.string.invalid_phone));
                 return;
             }
         }
 
         if (!cbPopia.isChecked()) {
-            showError("Please consent to POPIA act");
+            showError(getString(R.string.consent_popia));
             return;
         }
 
@@ -196,16 +188,17 @@ public class SignUpActivity extends AppCompatActivity {
         String password = isOrg ? etOrgPassword.getText().toString().trim() : etVolPassword.getText().toString().trim();
 
         btnSignup.setEnabled(false);
-        showError("Creating account...");
+        showError(getString(R.string.creating_account));
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
+                    if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                         String uid = mAuth.getCurrentUser().getUid();
                         saveUserDataToFirestore(uid, isOrg);
                     } else {
                         btnSignup.setEnabled(true);
-                        showError("Signup failed: " + task.getException().getMessage());
+                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                        showError(getString(R.string.signup_failed, errorMsg));
                     }
                 });
     }
@@ -227,7 +220,7 @@ public class SignUpActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     btnSignup.setEnabled(true);
-                    showError("Error saving user: " + e.getMessage());
+                    showError(getString(R.string.error_saving_user, e.getMessage()));
                 });
     }
 
@@ -246,12 +239,12 @@ public class SignUpActivity extends AppCompatActivity {
 
         db.collection("organisations").document(uid).set(org)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Organization Registration Successful!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, R.string.org_reg_success, Toast.LENGTH_LONG).show();
                     finish();
                 })
                 .addOnFailureListener(e -> {
                     btnSignup.setEnabled(true);
-                    showError("Error saving profile: " + e.getMessage());
+                    showError(getString(R.string.error_saving_profile, e.getMessage()));
                 });
     }
 
@@ -274,12 +267,12 @@ public class SignUpActivity extends AppCompatActivity {
 
         db.collection("volunteers").document(uid).set(vol)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Volunteer Registration Successful!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, R.string.vol_reg_success, Toast.LENGTH_LONG).show();
                     finish();
                 })
                 .addOnFailureListener(e -> {
                     btnSignup.setEnabled(true);
-                    showError("Error saving profile: " + e.getMessage());
+                    showError(getString(R.string.error_saving_profile, e.getMessage()));
                 });
     }
 
@@ -294,7 +287,7 @@ public class SignUpActivity extends AppCompatActivity {
 
     private boolean isValidPassword(String password) {
         // Minimum 8 characters, at least one number, at least one uppercase, at least one special character
-        String regex = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$";
+        String regex = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$";
         return Pattern.compile(regex).matcher(password).matches();
     }
 
@@ -305,7 +298,7 @@ public class SignUpActivity extends AppCompatActivity {
         return Pattern.compile(regex).matcher(phone).matches();
     }
 
-    private void setupPopiaLink() {
+    private void setupPopiaLink(TextView tvPopiaLink) {
         String text = "I consent according to the POPIA act";
         SpannableString ss = new SpannableString(text);
 
@@ -325,8 +318,8 @@ public class SignUpActivity extends AppCompatActivity {
 
     private void showPopiaDialog() {
         new AlertDialog.Builder(this)
-                .setTitle("POPIA Details")
-                .setMessage("to do add POPIA details")
+                .setTitle(R.string.popia_details_title)
+                .setMessage(R.string.popia_details_message)
                 .setPositiveButton("OK", null)
                 .show();
     }
