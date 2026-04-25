@@ -132,8 +132,7 @@ public class VolunteerDashboardActivity extends AppCompatActivity
             // TODO: startActivity(new Intent(this, MyApplicationsActivity.class));
             Toast.makeText(this, "My Applications", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_passport) {
-            // TODO: startActivity(new Intent(this, PassportActivity.class));
-            Toast.makeText(this, "My Passport", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, PassportActivity.class));
         } else if (id == R.id.nav_chats) {
             // TODO: startActivity(new Intent(this, ChatsActivity.class));
             Toast.makeText(this, "Chats", Toast.LENGTH_SHORT).show();

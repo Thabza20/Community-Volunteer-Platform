@@ -39,4 +39,18 @@
     <string name="default_zero">0</string>
     <string name="default_zero_percent">0%</string>
 
+    <!-- Passport Strings -->
+    <string name="community_volunteer">Community Volunteer</string>
+    <string name="default_id_placeholder">ID: CVP-XXXXXXXX</string>
+    <string name="passport_id_format">ID: CVP-%1$s</string>
+    <string name="profile_photo">Profile Photo</string>
+    <string name="volunteer_name">Volunteer Name</string>
+    <string name="default_location">Durban, ZA</string>
+    <string name="change_photo">Change Photo</string>
+    <string name="hours_volunteered">Hours Volunteered</string>
+    <string name="events_completed">Events Completed</string>
+    <string name="skills">Skills</string>
+    <string name="badges_earned">Badges Earned</string>
+    <string name="badge_hint">Long-press a badge to see how you earned it</string>
+
 </resources>

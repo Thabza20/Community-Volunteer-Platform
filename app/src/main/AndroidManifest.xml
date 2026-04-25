@@ -59,6 +59,15 @@
             android:name="com.google.android.gms.recaptcha.RECAPTCHA_SITE_KEY"
             android:value="6LcYHpkqAAAAAAnPixG3F-0BZqR6gTHPZyD6zS_z" />
 
+        <meta-data
+            android:name="CLOUDINARY_URL"
+            android:value="cloudinary://${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}@${CLOUDINARY_CLOUD_NAME}" />
+
+        <activity
+            android:name=".activities.PassportActivity"
+            android:label="My Passport"
+            android:parentActivityName=".activities.MainActivity" />
+
     </application>
 
 </manifest>

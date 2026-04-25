@@ -7,4 +7,21 @@
     <color name="success_green">#4CAF50</color>
     <color name="text_grey">#757575</color>
     <color name="badge_new">#FF9800</color>
+
+    <!-- Passport card theme -->
+    <color name="passport_card_bg">#1E0A3C</color>
+    <color name="passport_card_accent">#7C3AED</color>
+    <color name="passport_gold">#F59E0B</color>
+    <color name="text_on_dark">#FFFFFF</color>
+    <color name="text_secondary">#757575</color>
+
+    <!-- Skill chips -->
+    <color name="chip_skill_background">#EDE9FE</color>
+    <color name="chip_skill_text">#5B21B6</color>
+
+    <!-- Badge tile -->
+    <color name="badge_tile_bg">#F3F0FF</color>
+    <color name="background_main">#F5F5F5</color>
+
+
 </resources>
