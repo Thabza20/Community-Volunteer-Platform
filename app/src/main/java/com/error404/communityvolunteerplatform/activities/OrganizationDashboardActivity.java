@@ -98,8 +98,7 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
         cvViewOpportunities.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(OrganizationDashboardActivity.this,
-                        "Opportunities list coming soon", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(OrganizationDashboardActivity.this, ManageOpportunitiesActivity.class));
             }
         });
     }
