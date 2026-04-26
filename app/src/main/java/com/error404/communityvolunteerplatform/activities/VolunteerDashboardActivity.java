@@ -32,7 +32,7 @@ public class VolunteerDashboardActivity extends AppCompatActivity
     private String volunteerId;
 
     private TextView tvWelcome, tvHoursVolunteered, tvProjectsCompleted,
-            tvBadgesEarned, tvActiveApplications;
+            tvBadgesEarned, tvActiveApplications, tvPendingApplications;
 
     private android.view.View cardAiRecommendation;
     private android.view.View pbAiRec;
@@ -76,6 +76,19 @@ public class VolunteerDashboardActivity extends AppCompatActivity
         tvProjectsCompleted  = findViewById(R.id.tvProjectsCompleted);
         tvBadgesEarned       = findViewById(R.id.tvBadgesEarned);
         tvActiveApplications = findViewById(R.id.tvActiveApplications);
+        tvPendingApplications = findViewById(R.id.tvPendingApplications);
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else {
+                    setEnabled(false);
+                    onBackPressed();
+                }
+            }
+        });
 
         cardAiRecommendation = findViewById(R.id.cardAiRecommendation);
         pbAiRec              = findViewById(R.id.pbAiRec);
@@ -142,17 +155,28 @@ public class VolunteerDashboardActivity extends AppCompatActivity
                     Toast.makeText(this, "Failed to load profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
 
-        // Active (pending/approved) applications
-        // ⚠️ This query requires a composite index in Firestore (see note below)
+        // Active (approved) applications
         db.collection("applications")
                 .whereEqualTo("volunteerId", volunteerId)
-                .whereIn("status", java.util.Arrays.asList("pending", "approved"))
+                .whereEqualTo("status", "approved")
                 .whereEqualTo("withdrawnStatus", false)
                 .get()
                 .addOnSuccessListener(snap ->
-                        tvActiveApplications.setText(String.valueOf(snap.size())))
+                        tvActiveApplications.setText("Active Applications: " + snap.size()))
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load applications: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to load active applications: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+
+        // Pending applications
+        db.collection("applications")
+                .whereEqualTo("volunteerId", volunteerId)
+                .whereEqualTo("status", "pending")
+                .whereEqualTo("withdrawnStatus", false)
+                .get()
+                .addOnSuccessListener(snap ->
+                        tvPendingApplications.setText("Pending Applications: " + snap.size()))
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to load pending applications: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 

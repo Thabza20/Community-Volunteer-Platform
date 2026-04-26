@@ -1,332 +1,345 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    FILE: res/layout/activity_passport.xml
-
-    Passport screen layout.
--->
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_main"
-    android:fillViewport="true">
+    android:orientation="vertical"
+    android:background="@color/background_main">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="wrap_content">
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/white"
+            app:title="My Passport"
+            app:titleTextColor="@color/black"
+            app:navigationIconTint="@color/black"/>
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <!-- ── PASSPORT CARD ──────────────────────────────────────── -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cvPassportCard"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="@color/passport_card_bg"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="8dp">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <LinearLayout
+            <!-- ── PASSPORT CARD ──────────────────────────────────────── -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cvPassportCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="24dp">
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/passport_card_bg"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="8dp">
 
-                <!-- Platform label row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:baselineAligned="false"
-                    android:layout_marginBottom="20dp">
+                    android:orientation="vertical"
+                    android:padding="24dp">
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/community_volunteer"
-                        android:textColor="@color/passport_card_accent"
-                        android:textSize="11sp"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.1"/>
-
-                    <TextView
-                        android:id="@+id/tvPassportId"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/default_id_placeholder"
-                        android:textColor="#88FFFFFF"
-                        android:textSize="11sp"
-                        android:fontFamily="monospace"
-                        tools:text="ID: CVP-A1B2C3D4"/>
-                </LinearLayout>
-
-                <!-- Photo + Name row -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:baselineAligned="false"
-                    android:layout_marginBottom="20dp">
-
-                    <!-- Profile photo -->
-                    <FrameLayout
-                        android:layout_width="90dp"
-                        android:layout_height="90dp"
-                        android:layout_marginEnd="20dp">
-
-                        <ImageView
-                            android:id="@+id/ivPassportPhoto"
-                            android:layout_width="88dp"
-                            android:layout_height="88dp"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/ic_default_avatar"
-                            android:contentDescription="@string/profile_photo"/>
-
-                        <!-- Ring border effect -->
-                        <View
-                            android:layout_width="88dp"
-                            android:layout_height="88dp"
-                            android:background="@drawable/circle_border_accent"/>
-                    </FrameLayout>
-
-                    <!-- Name, location, upload button -->
+                    <!-- Platform label row -->
                     <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/tvPassportName"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/volunteer_name"
-                            android:textColor="@color/text_on_dark"
-                            android:textSize="20sp"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:id="@+id/tvPassportLocation"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/default_location"
-                            android:textColor="#AAFFFFFF"
-                            android:textSize="13sp"
-                            android:layout_marginTop="2dp"
-                            android:layout_marginBottom="10dp"/>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnChangePhoto"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="36dp"
-                                android:text="@string/change_photo"
-                                android:textColor="@color/passport_card_accent"
-                                android:textSize="11sp"
-                                app:strokeColor="@color/passport_card_accent"
-                                app:cornerRadius="18dp"
-                                android:layout_marginEnd="8dp"/>
-
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btnRemovePhoto"
-                                style="@style/Widget.MaterialComponents.Button.TextButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="36dp"
-                                android:text="@string/remove_photo"
-                                android:textColor="#FF5252"
-                                android:textSize="11sp"
-                                app:cornerRadius="18dp"
-                                android:visibility="gone"
-                                tools:visibility="visible"/>
-                        </LinearLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnEditProfile"
-                            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:layout_marginTop="4dp"
-                            android:text="Edit Profile"
-                            android:textColor="@color/text_on_dark"
-                            android:textSize="11sp"
-                            app:backgroundTint="@color/passport_card_accent"
-                            app:cornerRadius="18dp"/>
-                    </LinearLayout>
-                </LinearLayout>
-
-                <!-- Upload progress bar (hidden by default) -->
-                <ProgressBar
-                    android:id="@+id/pbUpload"
-                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="6dp"
-                    android:layout_marginBottom="12dp"
-                    android:visibility="gone"
-                    android:progressTint="@color/passport_card_accent"
-                    android:max="100"/>
-
-                <!-- Divider -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#33FFFFFF"
-                    android:layout_marginBottom="16dp"/>
-
-                <!-- Stats row: Hours | Events -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:baselineAligned="false"
-                    android:layout_marginBottom="8dp">
-
-                    <!-- Hours stat -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-
-                        <TextView
-                            android:id="@+id/tvPassportHours"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/default_zero"
-                            android:textColor="@color/passport_gold"
-                            android:textSize="32sp"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/hours_volunteered"
-                            android:textColor="#AAFFFFFF"
-                            android:textSize="11sp"/>
-                    </LinearLayout>
-
-                    <!-- Vertical divider -->
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="match_parent"
-                        android:background="#33FFFFFF"/>
-
-                    <!-- Events stat -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-
-                        <TextView
-                            android:id="@+id/tvPassportEvents"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/default_zero"
-                            android:textColor="@color/passport_gold"
-                            android:textSize="32sp"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/events_completed"
-                            android:textColor="#AAFFFFFF"
-                            android:textSize="11sp"/>
-                    </LinearLayout>
-                </LinearLayout>
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- ── SKILLS SECTION ─────────────────────────────────────── -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="2dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/skills"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="10dp"/>
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/cgPassportSkills"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- ── BADGES SECTION ─────────────────────────────────────── -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="2dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/badges_earned"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="4dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/badge_hint"
-                    android:textSize="11sp"
-                    android:textColor="@color/text_secondary"
-                    android:layout_marginBottom="12dp"/>
-
-                <!-- Horizontal scrolling badge row -->
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:scrollbars="none">
-
-                    <LinearLayout
-                        android:id="@+id/llPassportBadges"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical"/>
-                </HorizontalScrollView>
+                        android:gravity="center_vertical"
+                        android:baselineAligned="false"
+                        android:layout_marginBottom="20dp">
 
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/community_volunteer"
+                            android:textColor="@color/passport_card_accent"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.1"/>
 
-    </LinearLayout>
-</ScrollView>
+                        <TextView
+                            android:id="@+id/tvPassportId"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/default_id_placeholder"
+                            android:textColor="#88FFFFFF"
+                            android:textSize="11sp"
+                            android:fontFamily="monospace"
+                            tools:text="ID: CVP-A1B2C3D4"/>
+                    </LinearLayout>
+
+                    <!-- Photo + Name row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:baselineAligned="false"
+                        android:layout_marginBottom="20dp">
+
+                        <!-- Profile photo -->
+                        <FrameLayout
+                            android:layout_width="90dp"
+                            android:layout_height="90dp"
+                            android:layout_marginEnd="20dp">
+
+                            <ImageView
+                                android:id="@+id/ivPassportPhoto"
+                                android:layout_width="88dp"
+                                android:layout_height="88dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/ic_default_avatar"
+                                android:contentDescription="@string/profile_photo"/>
+
+                            <!-- Ring border effect -->
+                            <View
+                                android:layout_width="88dp"
+                                android:layout_height="88dp"
+                                android:background="@drawable/circle_border_accent"/>
+                        </FrameLayout>
+
+                        <!-- Name, location, upload button -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvPassportName"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/volunteer_name"
+                                android:textColor="@color/text_on_dark"
+                                android:textSize="20sp"
+                                android:textStyle="bold"/>
+
+                            <TextView
+                                android:id="@+id/tvPassportLocation"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/default_location"
+                                android:textColor="#AAFFFFFF"
+                                android:textSize="13sp"
+                                android:layout_marginTop="2dp"
+                                android:layout_marginBottom="10dp"/>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnChangePhoto"
+                                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="36dp"
+                                    android:text="@string/change_photo"
+                                    android:textColor="@color/passport_card_accent"
+                                    android:textSize="11sp"
+                                    app:strokeColor="@color/passport_card_accent"
+                                    app:cornerRadius="18dp"
+                                    android:layout_marginEnd="8dp"/>
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnRemovePhoto"
+                                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="36dp"
+                                    android:text="@string/remove_photo"
+                                    android:textColor="#FF5252"
+                                    android:textSize="11sp"
+                                    app:cornerRadius="18dp"
+                                    android:visibility="gone"
+                                    tools:visibility="visible"/>
+                            </LinearLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnEditProfile"
+                                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:layout_marginTop="4dp"
+                                android:text="Edit Profile"
+                                android:textColor="@color/text_on_dark"
+                                android:textSize="11sp"
+                                app:backgroundTint="@color/passport_card_accent"
+                                app:cornerRadius="18dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Upload progress bar (hidden by default) -->
+                    <ProgressBar
+                        android:id="@+id/pbUpload"
+                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="6dp"
+                        android:layout_marginBottom="12dp"
+                        android:visibility="gone"
+                        android:progressTint="@color/passport_card_accent"
+                        android:max="100"/>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#33FFFFFF"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Stats row: Hours | Events -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:baselineAligned="false"
+                        android:layout_marginBottom="8dp">
+
+                        <!-- Hours stat -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
+                            <TextView
+                                android:id="@+id/tvPassportHours"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/default_zero"
+                                android:textColor="@color/passport_gold"
+                                android:textSize="32sp"
+                                android:textStyle="bold"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/hours_volunteered"
+                                android:textColor="#AAFFFFFF"
+                                android:textSize="11sp"/>
+                        </LinearLayout>
+
+                        <!-- Vertical divider -->
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:background="#33FFFFFF"/>
+
+                        <!-- Events stat -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
+                            <TextView
+                                android:id="@+id/tvPassportEvents"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/default_zero"
+                                android:textColor="@color/passport_gold"
+                                android:textSize="32sp"
+                                android:textStyle="bold"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/events_completed"
+                                android:textColor="#AAFFFFFF"
+                                android:textSize="11sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ── SKILLS SECTION ─────────────────────────────────────── -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/skills"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="10dp"/>
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/cgPassportSkills"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ── BADGES SECTION ─────────────────────────────────────── -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/badges_earned"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/badge_hint"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginBottom="12dp"/>
+
+                    <!-- Horizontal scrolling badge row -->
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/llPassportBadges"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"/>
+                    </HorizontalScrollView>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

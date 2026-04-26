@@ -69,7 +69,7 @@
         <activity
             android:name=".activities.PassportActivity"
             android:label="My Passport"
-            android:parentActivityName=".activities.MainActivity" />
+            android:parentActivityName=".activities.VolunteerDashboardActivity" />
 
         <activity
             android:name=".activities.EditProfileActivity"

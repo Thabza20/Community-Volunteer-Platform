@@ -10,15 +10,20 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.error404.communityvolunteerplatform.R;
 import com.error404.communityvolunteerplatform.helpers.GmailOtpHelper;
+import com.error404.communityvolunteerplatform.helpers.LocationHelper;
 import com.error404.communityvolunteerplatform.models.Organisation;
 import com.error404.communityvolunteerplatform.models.User;
 import com.error404.communityvolunteerplatform.models.Volunteer;
@@ -45,6 +50,20 @@ public class SignUpActivity extends AppCompatActivity {
     // ── Brevo OTP helper (one instance for the session) ──────────
 
     private final GmailOtpHelper emailHelper = new GmailOtpHelper();
+    private LocationHelper locationHelper;
+    private ProgressBar pbOrgLocation;
+    private Button btnOrgDetectLocation;
+
+    private final ActivityResultLauncher<String[]> locationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                Boolean fineLocation = result.getOrDefault(android.Manifest.permission.ACCESS_FINE_LOCATION, false);
+                Boolean coarseLocation = result.getOrDefault(android.Manifest.permission.ACCESS_COARSE_LOCATION, false);
+                if ((fineLocation != null && fineLocation) || (coarseLocation != null && coarseLocation)) {
+                    startLocationDetection();
+                } else {
+                    Toast.makeText(this, "Location permission denied. Please type manually.", Toast.LENGTH_LONG).show();
+                }
+            });
 
     // Organisation fields
     private EditText etOrgName, etOrgEmail, etOrgPassword, etOrgLocation, etOrgDetails,
@@ -60,11 +79,14 @@ public class SignUpActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         db    = FirebaseFirestore.getInstance();
+        locationHelper = new LocationHelper(this);
 
         initViews();
         setupTabLayout();
         setupPopiaLink(findViewById(R.id.tvPopiaLink));
         findViewById(R.id.tvGoToLogin).setOnClickListener(v -> finish());
+
+        btnOrgDetectLocation.setOnClickListener(v -> checkLocationPermissions());
 
         btnSignup.setOnClickListener(v -> verifyOtpAndCreateAccount());
 
@@ -83,6 +105,41 @@ public class SignUpActivity extends AppCompatActivity {
      * Generates an OTP and emails it to the address the user typed in.
      * @param isOrg true = Organisation tab, false = Volunteer tab
      */
+    private void checkLocationPermissions() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            startLocationDetection();
+        } else {
+            locationPermissionLauncher.launch(new String[]{
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+            });
+        }
+    }
+
+    private void startLocationDetection() {
+        pbOrgLocation.setVisibility(View.VISIBLE);
+        btnOrgDetectLocation.setEnabled(false);
+        locationHelper.detectLocation(new LocationHelper.OnLocationDetectedListener() {
+            @Override
+            public void onLocationDetected(String locationName) {
+                runOnUiThread(() -> {
+                    pbOrgLocation.setVisibility(View.GONE);
+                    btnOrgDetectLocation.setEnabled(true);
+                    etOrgLocation.setText(locationName);
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                runOnUiThread(() -> {
+                    pbOrgLocation.setVisibility(View.GONE);
+                    btnOrgDetectLocation.setEnabled(true);
+                    Toast.makeText(SignUpActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
     private void requestEmailOtp(boolean isOrg) {
         String email = isOrg
                 ? etOrgEmail.getText().toString().trim()
@@ -313,6 +370,8 @@ public class SignUpActivity extends AppCompatActivity {
         etOrgPrimaryPhone   = findViewById(R.id.etOrgPrimaryPhone);
         etOrgSecondaryPhone = findViewById(R.id.etOrgSecondaryPhone);
         etOrgOtp            = findViewById(R.id.etOrgOtp);
+        btnOrgDetectLocation = findViewById(R.id.btnOrgDetectLocation);
+        pbOrgLocation        = findViewById(R.id.pbOrgLocation);
 
         // Volunteer
         etVolName    = findViewById(R.id.etVolName);

@@ -66,9 +66,18 @@
                     android:id="@+id/tvActiveApplications"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
+                    android:text="Active Applications: 0"
                     android:textSize="18sp"
                     android:layout_marginTop="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvPendingApplications"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pending Applications: 0"
+                    android:textSize="18sp"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/passport_card_accent"/>
 
                 <!-- AI Recommendations Preview -->
                 <com.google.android.material.card.MaterialCardView

@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -41,6 +42,13 @@ public class AiRecommendationsActivity extends AppCompatActivity {
         errorLayout = findViewById(R.id.errorLayout);
         tvErrorMessage = findViewById(R.id.tvErrorMessage);
         
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+
         findViewById(R.id.btnRetry).setOnClickListener(v -> fetchRecommendations());
 
         rvRecommendations.setLayoutManager(new LinearLayoutManager(this));
@@ -48,6 +56,12 @@ public class AiRecommendationsActivity extends AppCompatActivity {
         rvRecommendations.setAdapter(adapter);
 
         fetchRecommendations();
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
     }
 
     private void fetchRecommendations() {
