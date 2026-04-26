@@ -15,9 +15,13 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.error404.communityvolunteerplatform.R;
+import com.error404.communityvolunteerplatform.helpers.GroqRecommendationHelper;
+import com.error404.communityvolunteerplatform.models.Opportunity;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.List;
 
 public class VolunteerDashboardActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -29,6 +33,10 @@ public class VolunteerDashboardActivity extends AppCompatActivity
 
     private TextView tvWelcome, tvHoursVolunteered, tvProjectsCompleted,
             tvBadgesEarned, tvActiveApplications;
+
+    private android.view.View cardAiRecommendation;
+    private android.view.View pbAiRec;
+    private TextView tvAiRecTitle, tvAiRecDescription;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,21 +77,47 @@ public class VolunteerDashboardActivity extends AppCompatActivity
         tvBadgesEarned       = findViewById(R.id.tvBadgesEarned);
         tvActiveApplications = findViewById(R.id.tvActiveApplications);
 
-        // ── Replace deprecated onBackPressed() ──
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    drawerLayout.closeDrawer(GravityCompat.START);
-                } else {
-                    // Let system handle normal back press
-                    setEnabled(false);
-                    getOnBackPressedDispatcher().onBackPressed();
-                }
-            }
-        });
+        cardAiRecommendation = findViewById(R.id.cardAiRecommendation);
+        pbAiRec              = findViewById(R.id.pbAiRec);
+        tvAiRecTitle         = findViewById(R.id.tvAiRecTitle);
+        tvAiRecDescription   = findViewById(R.id.tvAiRecDescription);
+
+        findViewById(R.id.btnSeeAllRecommendations).setOnClickListener(v -> 
+                startActivity(new Intent(this, AiRecommendationsActivity.class)));
 
         loadVolunteerData();
+        loadAiRecommendation();
+    }
+
+    private void loadAiRecommendation() {
+        cardAiRecommendation.setVisibility(android.view.View.VISIBLE);
+        pbAiRec.setVisibility(android.view.View.VISIBLE);
+        tvAiRecTitle.setText("Loading...");
+        tvAiRecDescription.setText("");
+
+        GroqRecommendationHelper.getRecommendations(volunteerId, new GroqRecommendationHelper.OnRecommendationsListener() {
+            @Override
+            public void onSuccess(List<Opportunity> opportunities) {
+                pbAiRec.setVisibility(android.view.View.GONE);
+                if (!opportunities.isEmpty()) {
+                    Opportunity topMatch = opportunities.get(0);
+                    tvAiRecTitle.setText(topMatch.getTitle());
+                    tvAiRecDescription.setText(topMatch.getOpportunityDescription());
+                    cardAiRecommendation.setOnClickListener(v -> {
+                        Intent intent = new Intent(VolunteerDashboardActivity.this, OpportunityDetailsActivity.class);
+                        intent.putExtra("opportunityId", topMatch.getOpportunityId());
+                        startActivity(intent);
+                    });
+                } else {
+                    cardAiRecommendation.setVisibility(android.view.View.GONE);
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                cardAiRecommendation.setVisibility(android.view.View.GONE);
+            }
+        });
     }
 
     private void loadVolunteerData() {
@@ -128,6 +162,8 @@ public class VolunteerDashboardActivity extends AppCompatActivity
 
         if (id == R.id.nav_browse_opportunities) {
             startActivity(new Intent(this, BrowseOpportunitiesActivity.class));
+        } else if (id == R.id.nav_ai_recommendations) {
+            startActivity(new Intent(this, AiRecommendationsActivity.class));
         } else if (id == R.id.nav_my_applications) {
             // TODO: startActivity(new Intent(this, MyApplicationsActivity.class));
             Toast.makeText(this, "My Applications", Toast.LENGTH_SHORT).show();

@@ -77,6 +77,11 @@
             android:parentActivityName=".activities.PassportActivity"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".activities.AiRecommendationsActivity"
+            android:label="For You"
+            android:parentActivityName=".activities.VolunteerDashboardActivity" />
+
     </application>
 
 </manifest>

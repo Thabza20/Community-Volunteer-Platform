@@ -42,6 +42,9 @@ android {
         manifestPlaceholders["CLOUDINARY_CLOUD_NAME"] = localProperties["CLOUDINARY_CLOUD_NAME"] ?: ""
         manifestPlaceholders["CLOUDINARY_API_KEY"] = localProperties["CLOUDINARY_API_KEY"] ?: ""
         manifestPlaceholders["CLOUDINARY_API_SECRET"] = localProperties["CLOUDINARY_API_SECRET"] ?: ""
+
+        buildConfigField("String", "GROQ_API_KEY",
+            "\"${localProperties["GROQ_API_KEY"]}\"")
     }
 
     buildTypes {
@@ -90,6 +93,9 @@ dependencies {
 
     // Play Services Location for Edit Profile
     implementation("com.google.android.gms:play-services-location:21.2.0")
+
+    // OkHttp for Groq API
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

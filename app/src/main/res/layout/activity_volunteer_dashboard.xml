@@ -70,6 +70,82 @@
                     android:textSize="18sp"
                     android:layout_marginTop="8dp"/>
 
+                <!-- AI Recommendations Preview -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardAiRecommendation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Recommended for you"
+                                android:textStyle="bold"
+                                android:textColor="@color/black"
+                                android:textSize="16sp"/>
+
+                            <TextView
+                                android:id="@+id/btnSeeAllRecommendations"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:text="See all"
+                                android:textColor="@color/passport_card_accent"
+                                android:textStyle="bold"
+                                android:textSize="14sp"/>
+                        </RelativeLayout>
+
+                        <com.google.android.material.divider.MaterialDivider
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="8dp"/>
+
+                        <TextView
+                            android:id="@+id/tvAiRecTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Loading..."
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:textSize="15sp"/>
+
+                        <TextView
+                            android:id="@+id/tvAiRecDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="..."
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp"/>
+
+                        <ProgressBar
+                            android:id="@+id/pbAiRec"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:indeterminate="true"/>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
             </LinearLayout>
         </ScrollView>
     </LinearLayout>
