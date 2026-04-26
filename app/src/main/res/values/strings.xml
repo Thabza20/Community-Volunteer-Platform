@@ -47,6 +47,7 @@
     <string name="volunteer_name">Volunteer Name</string>
     <string name="default_location">Durban, ZA</string>
     <string name="change_photo">Change Photo</string>
+    <string name="remove_photo">Remove Photo</string>
     <string name="hours_volunteered">Hours Volunteered</string>
     <string name="events_completed">Events Completed</string>
     <string name="skills">Skills</string>

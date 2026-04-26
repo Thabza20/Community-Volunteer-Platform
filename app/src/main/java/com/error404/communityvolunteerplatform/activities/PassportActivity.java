@@ -44,6 +44,7 @@ public class PassportActivity extends AppCompatActivity {
     private ChipGroup      cgSkills;
     private LinearLayout   llBadgesContainer;
     private MaterialButton btnChangePhoto;
+    private MaterialButton btnRemovePhoto;
     private ProgressBar    pbUpload;
 
     private FirebaseFirestore db;
@@ -71,6 +72,7 @@ public class PassportActivity extends AppCompatActivity {
 
         loadPassportData();
         btnChangePhoto.setOnClickListener(v -> openImagePicker());
+        btnRemovePhoto.setOnClickListener(v -> removePhoto());
     }
 
     private void bindViews() {
@@ -83,7 +85,34 @@ public class PassportActivity extends AppCompatActivity {
         cgSkills          = findViewById(R.id.cgPassportSkills);
         llBadgesContainer = findViewById(R.id.llPassportBadges);
         btnChangePhoto    = findViewById(R.id.btnChangePhoto);
+        btnRemovePhoto    = findViewById(R.id.btnRemovePhoto);
         pbUpload          = findViewById(R.id.pbUpload);
+    }
+
+    private void removePhoto() {
+        if (currentUserId == null) return;
+
+        pbUpload.setVisibility(View.VISIBLE);
+        btnRemovePhoto.setEnabled(false);
+
+        db.collection("volunteers")
+                .document(currentUserId)
+                .update("profilePicUrl", "")
+                .addOnSuccessListener(aVoid -> {
+                    pbUpload.setVisibility(View.GONE);
+                    btnRemovePhoto.setEnabled(true);
+                    btnRemovePhoto.setVisibility(View.GONE);
+                    ivProfilePhoto.setImageResource(R.drawable.ic_default_avatar);
+                    if (currentVolunteer != null) {
+                        currentVolunteer.setProfilePicUrl("");
+                    }
+                    Toast.makeText(this, "Photo removed", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    pbUpload.setVisibility(View.GONE);
+                    btnRemovePhoto.setEnabled(true);
+                    Toast.makeText(this, "Failed to remove photo", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void loadPassportData() {
@@ -116,6 +145,7 @@ public class PassportActivity extends AppCompatActivity {
         tvEventsValue.setText(String.valueOf(v.getProjectsCompleted()));
 
         if (v.getProfilePicUrl() != null && !v.getProfilePicUrl().isEmpty()) {
+            btnRemovePhoto.setVisibility(View.VISIBLE);
             String thumbUrl = CloudinaryManager.buildThumbnailUrl(v.getProfilePicUrl(), 200, 200);
             Glide.with(this)
                     .load(thumbUrl)
@@ -124,6 +154,7 @@ public class PassportActivity extends AppCompatActivity {
                     .error(R.drawable.ic_default_avatar)
                     .into(ivProfilePhoto);
         } else {
+            btnRemovePhoto.setVisibility(View.GONE);
             ivProfilePhoto.setImageResource(R.drawable.ic_default_avatar);
         }
 
@@ -225,6 +256,7 @@ public class PassportActivity extends AppCompatActivity {
                                 .addOnSuccessListener(unused -> runOnUiThread(() -> {
                                     pbUpload.setVisibility(View.GONE);
                                     btnChangePhoto.setEnabled(true);
+                                    btnRemovePhoto.setVisibility(View.VISIBLE);
 
                                     if (currentVolunteer != null) {
                                         currentVolunteer.setProfilePicUrl(secureUrl);
