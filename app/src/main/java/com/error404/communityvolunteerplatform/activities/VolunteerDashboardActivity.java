@@ -40,7 +40,7 @@ public class VolunteerDashboardActivity extends AppCompatActivity
 
         // ── Safety check: redirect to login if user is not signed in ──
         if (auth.getCurrentUser() == null) {
-            startActivity(new Intent(this, MainActivity.class));
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
             return;
         }
@@ -141,7 +141,9 @@ public class VolunteerDashboardActivity extends AppCompatActivity
             Toast.makeText(this, "Profile", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_logout) {
             auth.signOut();
-            startActivity(new Intent(this, MainActivity.class));
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
             finish();
         }
 
