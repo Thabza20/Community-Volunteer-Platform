@@ -88,6 +88,9 @@ dependencies {
     // Glide — needed by PassportActivity for profile photo loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
+    // Play Services Location for Edit Profile
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

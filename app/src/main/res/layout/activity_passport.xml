@@ -150,6 +150,18 @@
                                 android:visibility="gone"
                                 tools:visibility="visible"/>
                         </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnEditProfile"
+                            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:layout_marginTop="4dp"
+                            android:text="Edit Profile"
+                            android:textColor="@color/text_on_dark"
+                            android:textSize="11sp"
+                            app:backgroundTint="@color/passport_card_accent"
+                            app:cornerRadius="18dp"/>
                     </LinearLayout>
                 </LinearLayout>
 

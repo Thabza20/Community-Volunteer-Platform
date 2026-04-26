@@ -54,4 +54,7 @@
     <string name="badges_earned">Badges Earned</string>
     <string name="badge_hint">Long-press a badge to see how you earned it</string>
 
+    <string name="edit_profile">Edit Profile</string>
+    <string name="save_profile">Save Profile</string>
+    <string name="detect_location">Detect My Location</string>
 </resources>

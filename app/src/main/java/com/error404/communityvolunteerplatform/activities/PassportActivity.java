@@ -45,6 +45,7 @@ public class PassportActivity extends AppCompatActivity {
     private LinearLayout   llBadgesContainer;
     private MaterialButton btnChangePhoto;
     private MaterialButton btnRemovePhoto;
+    private MaterialButton btnEditProfile;
     private ProgressBar    pbUpload;
 
     private FirebaseFirestore db;
@@ -73,6 +74,17 @@ public class PassportActivity extends AppCompatActivity {
         loadPassportData();
         btnChangePhoto.setOnClickListener(v -> openImagePicker());
         btnRemovePhoto.setOnClickListener(v -> removePhoto());
+        btnEditProfile.setOnClickListener(v -> {
+            startActivity(new Intent(this, EditProfileActivity.class));
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (currentUserId != null) {
+            loadPassportData();
+        }
     }
 
     private void bindViews() {
@@ -86,6 +98,7 @@ public class PassportActivity extends AppCompatActivity {
         llBadgesContainer = findViewById(R.id.llPassportBadges);
         btnChangePhoto    = findViewById(R.id.btnChangePhoto);
         btnRemovePhoto    = findViewById(R.id.btnRemovePhoto);
+        btnEditProfile    = findViewById(R.id.btnEditProfile);
         pbUpload          = findViewById(R.id.pbUpload);
     }
 
