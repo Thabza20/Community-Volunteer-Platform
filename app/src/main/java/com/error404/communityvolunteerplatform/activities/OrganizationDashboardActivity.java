@@ -82,8 +82,7 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
         ivProfileIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(OrganizationDashboardActivity.this,
-                        "Profile page coming soon", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(OrganizationDashboardActivity.this, OrganizationProfileActivity.class));
             }
         });
 

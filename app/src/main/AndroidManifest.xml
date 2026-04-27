@@ -48,6 +48,11 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".activities.OrganizationProfileActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".activities.BrowseOpportunitiesActivity"
             android:exported="false"
             android:label="Browse Opportunities"
