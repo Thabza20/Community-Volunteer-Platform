@@ -1,25 +1,22 @@
 package com.error404.communityvolunteerplatform.models;
 
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentId;
+import java.util.List;
 
 public class Chat {
-    private String chatId;           // volunteerId_opportunityId
-    private String volunteerId;
-    private String orgId;
-    private String opportunityId;
-    private String opportunityTitle; // denormalised for display
-    private String lastMessage;      // preview text for chat list
+    @DocumentId
+    private String chatId;
+    private List<String> participants; // List of UIDs [uid1, uid2]
+    private String lastMessage;
     private Timestamp lastMessageAt;
+    private String lastSenderId;
 
-    public Chat() {} // Required for Firestore
+    public Chat() {}
 
-    public Chat(String volunteerId, String orgId,
-                String opportunityId, String opportunityTitle) {
-        this.chatId = volunteerId + "_" + opportunityId;
-        this.volunteerId = volunteerId;
-        this.orgId = orgId;
-        this.opportunityId = opportunityId;
-        this.opportunityTitle = opportunityTitle;
+    public Chat(String chatId, List<String> participants) {
+        this.chatId = chatId;
+        this.participants = participants;
         this.lastMessage = "";
         this.lastMessageAt = Timestamp.now();
     }
@@ -27,21 +24,15 @@ public class Chat {
     public String getChatId() { return chatId; }
     public void setChatId(String chatId) { this.chatId = chatId; }
 
-    public String getVolunteerId() { return volunteerId; }
-    public void setVolunteerId(String volunteerId) { this.volunteerId = volunteerId; }
-
-    public String getOrgId() { return orgId; }
-    public void setOrgId(String orgId) { this.orgId = orgId; }
-
-    public String getOpportunityId() { return opportunityId; }
-    public void setOpportunityId(String opportunityId) { this.opportunityId = opportunityId; }
-
-    public String getOpportunityTitle() { return opportunityTitle; }
-    public void setOpportunityTitle(String opportunityTitle) { this.opportunityTitle = opportunityTitle; }
+    public List<String> getParticipants() { return participants; }
+    public void setParticipants(List<String> participants) { this.participants = participants; }
 
     public String getLastMessage() { return lastMessage; }
     public void setLastMessage(String lastMessage) { this.lastMessage = lastMessage; }
 
     public Timestamp getLastMessageAt() { return lastMessageAt; }
     public void setLastMessageAt(Timestamp lastMessageAt) { this.lastMessageAt = lastMessageAt; }
+
+    public String getLastSenderId() { return lastSenderId; }
+    public void setLastSenderId(String lastSenderId) { this.lastSenderId = lastSenderId; }
 }

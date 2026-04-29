@@ -87,6 +87,61 @@
             android:label="For You"
             android:parentActivityName=".activities.VolunteerDashboardActivity" />
 
+        <activity
+            android:name=".activities.RecentChatsActivity"
+            android:label="Chats"
+            android:parentActivityName=".activities.VolunteerDashboardActivity" />
+
+        <activity
+            android:name=".activities.MessagesActivity"
+            android:label="Chat"
+            android:parentActivityName=".activities.RecentChatsActivity" />
+
+        <activity
+            android:name=".activities.UsersListActivity"
+            android:label="Select User"
+            android:parentActivityName=".activities.RecentChatsActivity" />
+
+        <activity
+            android:name=".activities.ApplicationsListActivity"
+            android:label="My Applications"
+            android:parentActivityName=".activities.VolunteerDashboardActivity" />
+
+        <activity
+            android:name=".activities.AdminDashboardActivity"
+            android:label="Admin Dashboard"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.AdminManageUsersActivity"
+            android:label="Manage Users"
+            android:parentActivityName=".activities.AdminDashboardActivity" />
+
+        <activity
+            android:name=".activities.AdminManageOrgsActivity"
+            android:label="Manage Organisations"
+            android:parentActivityName=".activities.AdminDashboardActivity" />
+
+        <activity
+            android:name=".activities.AdminBlockedUsersActivity"
+            android:label="Blocked Users"
+            android:parentActivityName=".activities.AdminDashboardActivity" />
+
+        <activity
+            android:name=".activities.AdminUserDetailsActivity"
+            android:label="User Details"
+            android:parentActivityName=".activities.AdminManageUsersActivity" />
+
+        <activity
+            android:name=".activities.AdminNewOpportunitiesActivity"
+            android:label="Pending Opportunities"
+            android:parentActivityName=".activities.AdminDashboardActivity" />
+
+        <activity
+            android:name=".activities.AdminTrackProgramsActivity"
+            android:label="Track Programs"
+            android:parentActivityName=".activities.AdminDashboardActivity" />
+
     </application>
 
 </manifest>

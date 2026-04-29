@@ -10,6 +10,7 @@ public class Opportunity {
     public static final String STATUS_COMPLETED            = "completed";
     public static final String STATUS_OUTSTANDING          = "outstanding_applicants";
     public static final String STATUS_IN_PROGRESS          = "in_progress";
+    public static final String STATUS_PENDING_APPROVAL     = "pending_approval";
 
     // ── Category constants ────────────────────────────────────
     public static final String CAT_COMMUNITY               = "Community Services";

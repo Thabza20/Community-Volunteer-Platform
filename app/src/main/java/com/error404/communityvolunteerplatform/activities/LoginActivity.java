@@ -129,9 +129,8 @@ public class LoginActivity extends AppCompatActivity {
                                 startActivity(new Intent(LoginActivity.this, OrganizationDashboardActivity.class));
                                 finish();
                             } else if (isAdmin) {
-                                // TODO: Create AdminDashboardActivity
-                                Toast.makeText(this, "Admin Dashboard coming soon", Toast.LENGTH_SHORT).show();
-                                btnLogin.setEnabled(true);
+                                startActivity(new Intent(LoginActivity.this, AdminDashboardActivity.class));
+                                finish();
                             }
                         } else {
                             mAuth.signOut();
