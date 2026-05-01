@@ -1,11 +1,9 @@
 package com.error404.communityvolunteerplatform.models;
 
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentId;
 import java.util.List;
 
 public class Chat {
-    @DocumentId
     private String chatId;
     private List<String> participants; // List of UIDs [uid1, uid2]
     private String lastMessage;

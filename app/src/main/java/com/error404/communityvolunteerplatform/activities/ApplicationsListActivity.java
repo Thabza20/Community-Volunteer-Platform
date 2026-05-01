@@ -90,6 +90,7 @@ public class ApplicationsListActivity extends AppCompatActivity {
                     applicationList.clear();
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         Application app = document.toObject(Application.class);
+                        app.setApplicationId(document.getId());
                         applicationList.add(app);
                     }
                     adapter.notifyDataSetChanged();

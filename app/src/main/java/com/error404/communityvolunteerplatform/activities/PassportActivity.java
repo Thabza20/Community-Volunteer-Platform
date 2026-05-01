@@ -152,7 +152,10 @@ public class PassportActivity extends AppCompatActivity {
                         return;
                     }
                     currentVolunteer = doc.toObject(Volunteer.class);
-                    if (currentVolunteer != null) populatePassport(currentVolunteer);
+                    if (currentVolunteer != null) {
+                        currentVolunteer.setUserId(doc.getId());
+                        populatePassport(currentVolunteer);
+                    }
                 })
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Failed to load passport.", Toast.LENGTH_SHORT).show());

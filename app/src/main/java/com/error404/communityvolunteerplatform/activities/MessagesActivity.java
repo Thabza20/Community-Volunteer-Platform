@@ -20,6 +20,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,7 +102,9 @@ public class MessagesActivity extends AppCompatActivity {
                     }
                     if (value != null) {
                         messageList.clear();
-                        for (Message msg : value.toObjects(Message.class)) {
+                        for (QueryDocumentSnapshot doc : value) {
+                            Message msg = doc.toObject(Message.class);
+                            msg.setMessageId(doc.getId());
                             messageList.add(msg);
                         }
                         adapter.notifyDataSetChanged();

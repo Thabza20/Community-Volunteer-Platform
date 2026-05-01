@@ -1,10 +1,8 @@
 package com.error404.communityvolunteerplatform.models;
 
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentId;
 
 public class Message {
-    @DocumentId
     private String messageId;
     private String senderId;
     private String senderRole;   // "volunteer" | "organisation"

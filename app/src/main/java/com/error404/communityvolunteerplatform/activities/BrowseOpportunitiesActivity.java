@@ -12,7 +12,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,6 +27,7 @@ import com.error404.communityvolunteerplatform.models.Opportunity;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
@@ -45,9 +45,7 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
 
     private EditText etSearchName;
     private Spinner spinnerCategory;
-    private Button btnSearch;
     private RecyclerView rvOpportunities;
-    private TabLayout tabLayout;
     private MapView mapView;
     private OpportunityAdapter adapter;
     private List<Opportunity> fullOpportunityList;
@@ -68,14 +66,15 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
         }
 
         db = FirebaseFirestore.getInstance();
-        Configuration.getInstance().load(this, android.preference.PreferenceManager.getDefaultSharedPreferences(this));
+        // Use standard SharedPreferences to avoid deprecated PreferenceManager
+        Configuration.getInstance().load(this, getSharedPreferences("osmdroid", MODE_PRIVATE));
         geocoder = new Geocoder(this, Locale.getDefault());
 
         etSearchName = findViewById(R.id.etSearchName);
         spinnerCategory = findViewById(R.id.spinnerCategory);
-        btnSearch = findViewById(R.id.btnSearch);
+        Button btnSearch = findViewById(R.id.btnSearch);
         rvOpportunities = findViewById(R.id.rvOpportunities);
-        tabLayout = findViewById(R.id.tabLayout);
+        TabLayout tabLayout = findViewById(R.id.tabLayout);
         mapView = findViewById(R.id.mapView);
 
         initMap();
@@ -150,31 +149,39 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
         GeoPoint defaultPoint = new GeoPoint(-29.8587, 31.0218); // Durban
         mapView.getController().setCenter(defaultPoint);
 
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        db.collection("volunteers").document(uid).get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                String location = documentSnapshot.getString("location");
-                if (location != null && !location.isEmpty()) {
-                    new Thread(() -> {
-                        try {
-                            List<Address> addresses = geocoder.getFromLocationName(location, 1);
-                            if (addresses != null && !addresses.isEmpty()) {
-                                GeoPoint userPoint = new GeoPoint(addresses.get(0).getLatitude(), addresses.get(0).getLongitude());
-                                runOnUiThread(() -> mapView.getController().setCenter(userPoint));
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            db.collection("volunteers").document(uid).get().addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    String location = documentSnapshot.getString("location");
+                    if (location != null && !location.isEmpty()) {
+                        new Thread(() -> {
+                            try {
+                                List<Address> addresses = geocoder.getFromLocationName(location, 1);
+                                if (addresses != null && !addresses.isEmpty()) {
+                                    GeoPoint userPoint = new GeoPoint(addresses.get(0).getLatitude(), addresses.get(0).getLongitude());
+                                    runOnUiThread(() -> mapView.getController().setCenter(userPoint));
+                                }
+                            } catch (IOException e) {
+                                Log.e("MapInit", "Geocoding failed", e);
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }).start();
+                        }).start();
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     private void loadOpportunityPins() {
         isPinsLoaded = true;
+        runOnUiThread(() -> {
+            mapView.getOverlays().clear();
+            mapView.invalidate();
+        });
+
         new Thread(() -> {
-            for (Opportunity op : fullOpportunityList) {
+            List<Opportunity> currentFiltered = new ArrayList<>(filteredList);
+            for (Opportunity op : currentFiltered) {
                 String loc = op.getLocation();
                 if (loc == null || loc.isEmpty()) continue;
 
@@ -271,7 +278,11 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     fullOpportunityList.clear();
                     if (!queryDocumentSnapshots.isEmpty()) {
-                        fullOpportunityList.addAll(queryDocumentSnapshots.toObjects(Opportunity.class));
+                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                            Opportunity opp = doc.toObject(Opportunity.class);
+                            opp.setOpportunityId(doc.getId());
+                            fullOpportunityList.add(opp);
+                        }
                     }
                     performSearch();
                 })
@@ -296,6 +307,12 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
         }
 
         adapter.notifyDataSetChanged();
+        
+        if (mapView.getVisibility() == View.VISIBLE) {
+            loadOpportunityPins();
+        } else {
+            isPinsLoaded = false;
+        }
     }
 
     @Override

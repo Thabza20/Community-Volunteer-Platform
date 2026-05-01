@@ -23,10 +23,11 @@ public class Opportunity {
     public static final String CAT_SKILLS                  = "Skills-based / Pro Bono";
     public static final String CAT_REMOTE                  = "Remote / Virtual Volunteering";
 
-    private String opportunityId;        // Firestore auto-generated ID
+    private String opportunityId;        // Firestore document ID (NOT a field in the document)
     private String orgId;                // userId of the organisation
     private String orgName;              // denormalised for display
     private String title;                // opportunity name
+    private String location;             // physical address
     private String orgDescription;       // about the org (character limited)
     private String opportunityDescription; // tasks, duties, roles
     private String category;             // one of the CAT_ constants above
@@ -40,15 +41,18 @@ public class Opportunity {
     private String qualificationFileUrl; // Firebase Storage URL — nullable
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private Object eventDate;            // Can be Timestamp or String in DB
+    private boolean full;                // Whether the opportunity is full
 
     public Opportunity() {} // Required for Firestore
 
-    public Opportunity(String orgId, String orgName, String title,
+    public Opportunity(String orgId, String orgName, String title, String location,
                        String orgDescription, String opportunityDescription,
                        String category, int slotsTotal) {
         this.orgId = orgId;
         this.orgName = orgName;
         this.title = title;
+        this.location = location;
         this.orgDescription = orgDescription;
         this.opportunityDescription = opportunityDescription;
         this.category = category;
@@ -90,6 +94,9 @@ public class Opportunity {
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
     public String getOrgDescription() { return orgDescription; }
     public void setOrgDescription(String orgDescription) { this.orgDescription = orgDescription; }
 
@@ -128,4 +135,18 @@ public class Opportunity {
 
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+
+    public Timestamp getEventDate() {
+        if (eventDate instanceof Timestamp) {
+            return (Timestamp) eventDate;
+        }
+        // If it's a String or other type, we return null to prevent crashes
+        return null;
+    }
+
+    public void setEventDate(Object eventDate) {
+        this.eventDate = eventDate;
+    }
+
+    public void setFull(boolean full) { this.full = full; }
 }

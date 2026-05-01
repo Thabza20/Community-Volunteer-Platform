@@ -1,25 +1,24 @@
 package com.error404.communityvolunteerplatform.activities;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import com.error404.communityvolunteerplatform.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class OrganizationDashboardActivity extends AppCompatActivity {
 
@@ -29,11 +28,11 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
     private Button btnCreateOpportunity;
     private CardView cvViewOpportunities;
     private ImageView ivProfileIcon;
+    private ProgressBar pbDashboard;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private String orgId;
-    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +50,6 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
             finish();
             return;
         }
-
-        progressDialog = new ProgressDialog(this);
 
         initializeViews();
         setupClickListeners();
@@ -76,114 +73,107 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
         btnCreateOpportunity = findViewById(R.id.btnCreateOpportunity);
         cvViewOpportunities = findViewById(R.id.cvViewOpportunities);
         ivProfileIcon = findViewById(R.id.ivProfileIcon);
+        pbDashboard = findViewById(R.id.pbDashboard);
     }
 
     private void setupClickListeners() {
-        ivProfileIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(OrganizationDashboardActivity.this, OrganizationProfileActivity.class));
-            }
-        });
+        ivProfileIcon.setOnClickListener(v ->
+                startActivity(new Intent(OrganizationDashboardActivity.this, OrganizationProfileActivity.class))
+        );
 
-        btnCreateOpportunity.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        btnCreateOpportunity.setOnClickListener(v ->
                 Toast.makeText(OrganizationDashboardActivity.this,
-                        "Create Opportunity - Coming Soon", Toast.LENGTH_SHORT).show();
-            }
-        });
+                        "Create Opportunity - Coming Soon", Toast.LENGTH_SHORT).show()
+        );
 
-        cvViewOpportunities.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(OrganizationDashboardActivity.this, ManageOpportunitiesActivity.class));
-            }
-        });
+        cvViewOpportunities.setOnClickListener(v ->
+                startActivity(new Intent(OrganizationDashboardActivity.this, ManageOpportunitiesActivity.class))
+        );
     }
 
     private void loadDashboardData() {
-        progressDialog.setMessage("Loading dashboard...");
-        progressDialog.show();
+        pbDashboard.setVisibility(View.VISIBLE);
+        AtomicInteger queriesRemaining = new AtomicInteger(4);
 
+        Runnable checkComplete = () -> {
+            if (queriesRemaining.decrementAndGet() == 0) {
+                pbDashboard.setVisibility(View.GONE);
+            }
+        };
+
+        // Query 1: active opportunities → tvActiveOpportunities
         db.collection("opportunities")
-                .whereEqualTo("organizationId", orgId)
+                .whereEqualTo("orgId", orgId)
                 .whereEqualTo("status", "active")
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            tvActiveOpportunities.setText(String.valueOf(task.getResult().size()));
-                        } else {
-                            tvActiveOpportunities.setText("0");
-                        }
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        tvActiveOpportunities.setText(String.valueOf(task.getResult().size()));
+                    } else {
+                        tvActiveOpportunities.setText(getString(R.string.default_zero));
                     }
+                    checkComplete.run();
                 });
 
+        // Query 2: all opportunities → tvTotalOpportunities + tvTotalVolunteers (sum slotsFilled) + tvCompletionRate (count status=="completed")
         db.collection("opportunities")
-                .whereEqualTo("organizationId", orgId)
+                .whereEqualTo("orgId", orgId)
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            tvTotalOpportunities.setText(String.valueOf(task.getResult().size()));
-                        } else {
-                            tvTotalOpportunities.setText("0");
-                        }
-                        tvCompletionRate.setText("0%");
-                    }
-                });
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        int total = task.getResult().size();
+                        int volunteers = 0;
+                        int completed = 0;
+                        for (QueryDocumentSnapshot doc : task.getResult()) {
+                            Long filled = doc.getLong("slotsFilled");
+                            if (filled != null) volunteers += filled;
 
-        db.collection("opportunities")
-                .whereEqualTo("organizationId", orgId)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            int totalVolunteers = 0;
-                            for (com.google.firebase.firestore.DocumentSnapshot doc : task.getResult()) {
-                                Long count = doc.getLong("approvedApplicants");
-                                if (count != null) totalVolunteers += count;
+                            if ("completed".equals(doc.getString("status"))) {
+                                completed++;
                             }
-                            tvTotalVolunteers.setText(String.valueOf(totalVolunteers));
-                        } else {
-                            tvTotalVolunteers.setText("0");
                         }
+                        tvTotalOpportunities.setText(String.valueOf(total));
+                        tvTotalVolunteers.setText(String.valueOf(volunteers));
+                        if (total > 0) {
+                            int rate = (completed * 100) / total;
+                            tvCompletionRate.setText(getString(R.string.percent_format, rate));
+                        } else {
+                            tvCompletionRate.setText(getString(R.string.default_zero_percent));
+                        }
+                    } else {
+                        tvTotalOpportunities.setText(getString(R.string.default_zero));
+                        tvTotalVolunteers.setText(getString(R.string.default_zero));
+                        tvCompletionRate.setText(getString(R.string.default_zero_percent));
                     }
+                    checkComplete.run();
                 });
 
+        // Query 3: pending applications → tvPendingApplications
         db.collection("applications")
-                .whereEqualTo("organizationId", orgId)
+                .whereEqualTo("orgId", orgId)
                 .whereEqualTo("status", "pending")
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            tvPendingApplications.setText(String.valueOf(task.getResult().size()));
-                        } else {
-                            tvPendingApplications.setText("0");
-                        }
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        tvPendingApplications.setText(String.valueOf(task.getResult().size()));
+                    } else {
+                        tvPendingApplications.setText(getString(R.string.default_zero));
                     }
+                    checkComplete.run();
                 });
 
+        // Query 4: approved applications → tvApprovedApplications
         db.collection("applications")
-                .whereEqualTo("organizationId", orgId)
+                .whereEqualTo("orgId", orgId)
                 .whereEqualTo("status", "approved")
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            tvApprovedApplications.setText(String.valueOf(task.getResult().size()));
-                        } else {
-                            tvApprovedApplications.setText("0");
-                        }
-                        progressDialog.dismiss();
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        tvApprovedApplications.setText(String.valueOf(task.getResult().size()));
+                    } else {
+                        tvApprovedApplications.setText(getString(R.string.default_zero));
                     }
+                    checkComplete.run();
                 });
     }
 }

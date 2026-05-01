@@ -18,7 +18,7 @@ import com.error404.communityvolunteerplatform.models.Chat;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +85,9 @@ public class RecentChatsActivity extends AppCompatActivity {
                     }
                     if (value != null) {
                         chatList.clear();
-                        for (Chat chat : value.toObjects(Chat.class)) {
+                        for (QueryDocumentSnapshot doc : value) {
+                            Chat chat = doc.toObject(Chat.class);
+                            chat.setChatId(doc.getId());
                             chatList.add(chat);
                         }
                         // Sort manually if index is not ready

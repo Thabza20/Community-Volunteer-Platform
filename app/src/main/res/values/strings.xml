@@ -38,6 +38,7 @@
     <string name="view_manage_opportunities">View &amp; Manage All Opportunities</string>
     <string name="default_zero">0</string>
     <string name="default_zero_percent">0%</string>
+    <string name="percent_format">%1$d%%</string>
 
     <!-- Passport Strings -->
     <string name="community_volunteer">Community Volunteer</string>

@@ -12,6 +12,14 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <ProgressBar
+            android:id="@+id/pbDashboard"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:indeterminate="true"
+            android:visibility="gone"/>
+
         <!-- Header with Profile Icon -->
         <RelativeLayout
             android:layout_width="match_parent"

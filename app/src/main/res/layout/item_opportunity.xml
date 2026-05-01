@@ -30,6 +30,15 @@
             android:layout_marginTop="4dp" />
 
         <TextView
+            android:id="@+id/tvLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Location"
+            android:textColor="@color/material_dynamic_neutral40"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp" />
+
+        <TextView
             android:id="@+id/tvCategory"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

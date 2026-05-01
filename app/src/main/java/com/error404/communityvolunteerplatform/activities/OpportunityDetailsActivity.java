@@ -14,7 +14,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class OpportunityDetailsActivity extends AppCompatActivity {
 
-    private TextView tvTitle, tvOrgName, tvCategory, tvOrgDesc, tvOppDesc, tvSlots;
+    private TextView tvTitle, tvOrgName, tvLocation, tvCategory, tvOrgDesc, tvOppDesc, tvSlots;
     private Button btnApply;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
@@ -44,6 +44,7 @@ public class OpportunityDetailsActivity extends AppCompatActivity {
 
         tvTitle = findViewById(R.id.tvDetailTitle);
         tvOrgName = findViewById(R.id.tvDetailOrgName);
+        tvLocation = findViewById(R.id.tvDetailLocation);
         tvCategory = findViewById(R.id.tvDetailCategory);
         tvOrgDesc = findViewById(R.id.tvDetailOrgDesc);
         tvOppDesc = findViewById(R.id.tvDetailOppDesc);
@@ -64,6 +65,7 @@ public class OpportunityDetailsActivity extends AppCompatActivity {
                     if (doc.exists()) {
                         tvTitle.setText(doc.getString("title"));
                         tvOrgName.setText(doc.getString("orgName"));
+                        tvLocation.setText(doc.getString("location"));
                         tvCategory.setText(doc.getString("category"));
                         tvOrgDesc.setText(doc.getString("orgDescription"));
                         tvOppDesc.setText(doc.getString("opportunityDescription"));

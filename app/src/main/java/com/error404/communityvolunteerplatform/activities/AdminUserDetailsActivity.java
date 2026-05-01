@@ -66,6 +66,7 @@ public class AdminUserDetailsActivity extends AppCompatActivity {
             if (documentSnapshot.exists()) {
                 user = documentSnapshot.toObject(User.class);
                 if (user != null) {
+                    user.setUserId(documentSnapshot.getId());
                     displayUserBasicInfo();
                     fetchRoleSpecificInfo();
                 }

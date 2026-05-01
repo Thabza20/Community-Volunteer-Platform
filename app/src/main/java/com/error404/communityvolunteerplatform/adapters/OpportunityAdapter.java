@@ -46,12 +46,13 @@ public class OpportunityAdapter extends RecyclerView.Adapter<OpportunityAdapter.
     }
 
     static class OpportunityViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvOrgName, tvCategory, tvDescription, tvSlots;
+        TextView tvTitle, tvOrgName, tvLocation, tvCategory, tvDescription, tvSlots;
 
         public OpportunityViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tvTitle);
             tvOrgName = itemView.findViewById(R.id.tvOrgName);
+            tvLocation = itemView.findViewById(R.id.tvLocation);
             tvCategory = itemView.findViewById(R.id.tvCategory);
             tvDescription = itemView.findViewById(R.id.tvDescription);
             tvSlots = itemView.findViewById(R.id.tvSlots);
@@ -60,6 +61,7 @@ public class OpportunityAdapter extends RecyclerView.Adapter<OpportunityAdapter.
         public void bind(Opportunity opportunity, OnOpportunityClickListener listener) {
             tvTitle.setText(opportunity.getTitle());
             tvOrgName.setText(opportunity.getOrgName());
+            tvLocation.setText(opportunity.getLocation());
             tvCategory.setText(opportunity.getCategory());
             tvDescription.setText(opportunity.getOpportunityDescription());
             tvSlots.setText("Slots: " + opportunity.getSlotsFilled() + "/" + opportunity.getSlotsTotal());

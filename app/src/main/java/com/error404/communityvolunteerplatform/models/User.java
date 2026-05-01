@@ -1,12 +1,10 @@
 package com.error404.communityvolunteerplatform.models;
 
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
 @IgnoreExtraProperties
 public class User {
-    @DocumentId
     private String userId;       // Document ID
     
     private String uid;          // Some scripts use a 'uid' field

@@ -103,6 +103,7 @@ public class EditProfileActivity extends AppCompatActivity {
         db.collection("volunteers").document(currentUserId).get().addOnSuccessListener(doc -> {
             currentVolunteer = doc.toObject(Volunteer.class);
             if (currentVolunteer != null) {
+                currentVolunteer.setUserId(doc.getId());
                 etFullName.setText(currentVolunteer.getFullName());
                 etPhoneNumber.setText(currentVolunteer.getPhoneNumber());
                 etBio.setText(currentVolunteer.getBio());

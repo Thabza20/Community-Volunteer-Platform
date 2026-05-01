@@ -16,6 +16,7 @@ public class BadgeAwardHelper {
         db.collection("volunteers").document(volunteerId).get().addOnSuccessListener(documentSnapshot -> {
             Volunteer volunteer = documentSnapshot.toObject(Volunteer.class);
             if (volunteer != null) {
+                volunteer.setUserId(documentSnapshot.getId());
                 List<String> newBadges = BadgeEngine.evaluate(volunteer);
                 if (!newBadges.isEmpty()) {
                     List<String> allBadges = BadgeEngine.mergeWithExisting(volunteer);

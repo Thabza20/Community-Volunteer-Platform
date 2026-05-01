@@ -94,6 +94,7 @@ public class OrganizationProfileActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         currentOrg = documentSnapshot.toObject(Organisation.class);
                         if (currentOrg != null) {
+                            currentOrg.setUserId(documentSnapshot.getId());
                             etOrgName.setText(currentOrg.getOrgName());
                             etEmail.setText(currentOrg.getEmail());
                             etOrgNumber.setText(currentOrg.getOrgNumber());
