@@ -91,6 +91,9 @@ dependencies {
     // Glide — needed by PassportActivity for profile photo loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
+    // OSMDroid for map view
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+
     // Play Services Location for Edit Profile
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
