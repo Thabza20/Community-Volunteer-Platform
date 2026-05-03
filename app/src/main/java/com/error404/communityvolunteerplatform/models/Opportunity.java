@@ -32,6 +32,7 @@ public class Opportunity {
     private String opportunityDescription; // tasks, duties, roles
     private String category;             // one of the CAT_ constants above
     private String status;               // one of the STATUS_ constants above
+    private Object eventDate;            // Can be Timestamp or String in DB
     private int slotsTotal;              // max applicants set by org
     private int slotsFilled;             // increments on approval, decrements on withdrawal
     private boolean requiresExperience;
@@ -41,7 +42,6 @@ public class Opportunity {
     private String qualificationFileUrl; // Firebase Storage URL — nullable
     private Timestamp createdAt;
     private Timestamp updatedAt;
-    private Object eventDate;            // Can be Timestamp or String in DB
     private boolean full;                // Whether the opportunity is full
 
     public Opportunity() {} // Required for Firestore
@@ -66,12 +66,10 @@ public class Opportunity {
     }
 
     // ── Slot logic helpers ────────────────────────────────────
-    // Call this after every approval or withdrawal to keep status in sync
     public void recalculateStatus() {
         if (slotsFilled >= slotsTotal) {
             this.status = STATUS_HIDDEN;
         } else if (STATUS_HIDDEN.equals(this.status)) {
-            // Was hidden, now has a slot — make active again
             this.status = STATUS_ACTIVE;
         }
         this.updatedAt = Timestamp.now();
@@ -109,6 +107,9 @@ public class Opportunity {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
+    public Object getEventDate() { return eventDate; }
+    public void setEventDate(Object eventDate) { this.eventDate = eventDate; }
+
     public int getSlotsTotal() { return slotsTotal; }
     public void setSlotsTotal(int slotsTotal) { this.slotsTotal = slotsTotal; }
 
@@ -135,18 +136,6 @@ public class Opportunity {
 
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
-
-    public Timestamp getEventDate() {
-        if (eventDate instanceof Timestamp) {
-            return (Timestamp) eventDate;
-        }
-        // If it's a String or other type, we return null to prevent crashes
-        return null;
-    }
-
-    public void setEventDate(Object eventDate) {
-        this.eventDate = eventDate;
-    }
 
     public void setFull(boolean full) { this.full = full; }
 }

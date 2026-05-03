@@ -1,5 +1,6 @@
 package com.error404.communityvolunteerplatform.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -63,8 +64,10 @@ public class ManageOpportunitiesActivity extends AppCompatActivity {
         rvOpportunities.setLayoutManager(new LinearLayoutManager(this));
         
         adapter = new OpportunityManagementAdapter(filteredOpportunities, applicantCounts, opportunity -> {
-            // TODO: Open opportunity details/edit for organization
-            Toast.makeText(this, "Editing " + opportunity.getTitle(), Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(ManageOpportunitiesActivity.this, EventApplicantsActivity.class);
+            intent.putExtra("OPPORTUNITY_ID", opportunity.getOpportunityId());
+            intent.putExtra("OPPORTUNITY_TITLE", opportunity.getTitle());
+            startActivity(intent);
         });
         rvOpportunities.setAdapter(adapter);
 

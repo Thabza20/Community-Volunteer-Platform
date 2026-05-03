@@ -7,7 +7,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -82,9 +81,9 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
         );
 
         btnCreateOpportunity.setOnClickListener(v ->
-                Toast.makeText(OrganizationDashboardActivity.this,
-                        "Create Opportunity - Coming Soon", Toast.LENGTH_SHORT).show()
+                startActivity(new Intent(OrganizationDashboardActivity.this, CreateEventActivity.class))
         );
+
 
         cvViewOpportunities.setOnClickListener(v ->
                 startActivity(new Intent(OrganizationDashboardActivity.this, ManageOpportunitiesActivity.class))

@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.error404.communityvolunteerplatform.R;
 import com.error404.communityvolunteerplatform.models.Organisation;
@@ -54,6 +55,13 @@ public class OrganizationProfileActivity extends AppCompatActivity {
 
         initializeViews();
         loadProfile();
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        toolbar.setNavigationOnClickListener(v -> finish());
 
         btnChangeLogo.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -122,13 +130,22 @@ public class OrganizationProfileActivity extends AppCompatActivity {
             return;
         }
 
+        btnSaveProfile.setEnabled(false);
+        Toast.makeText(this, "Saving profile...", Toast.LENGTH_SHORT).show();
+
         db.collection("organisations").document(currentUserId)
                 .update("orgName", name,
                         "orgNumber", number,
                         "location", location,
                         "orgDetails", details,
                         "primaryPhoneNumber", phone)
-                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Profile Saved", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(this, "Error saving profile: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Profile successfully saved!", Toast.LENGTH_SHORT).show();
+                    finish(); // Return to Organization Dashboard
+                })
+                .addOnFailureListener(e -> {
+                    btnSaveProfile.setEnabled(true);
+                    Toast.makeText(this, "Save unsuccessful: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 }

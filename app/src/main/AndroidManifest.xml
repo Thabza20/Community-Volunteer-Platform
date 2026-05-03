@@ -55,6 +55,16 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".activities.CreateEventActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activities.EventApplicantsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".activities.BrowseOpportunitiesActivity"
             android:exported="false"
             android:label="Browse Opportunities"

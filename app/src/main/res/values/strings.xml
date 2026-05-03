@@ -34,11 +34,12 @@
     <string name="pending_applications">Pending</string>
     <string name="approved_applications">Approved</string>
     <string name="completion_rate">Completion Rate</string>
-    <string name="create_new_opportunity">Create New Opportunity</string>
+    <string name="create_new_opportunity">Create Event</string>
     <string name="view_manage_opportunities">View &amp; Manage All Opportunities</string>
     <string name="default_zero">0</string>
     <string name="default_zero_percent">0%</string>
     <string name="percent_format">%1$d%%</string>
+    <string name="slots_filled_format">%1$d / %2$d slots filled</string>
 
     <!-- Passport Strings -->
     <string name="community_volunteer">Community Volunteer</string>
