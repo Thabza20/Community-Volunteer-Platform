@@ -26,7 +26,11 @@ public class GroqRecommendationHelper {
 
     private static final String TAG = "GroqRecommendationHelper";
     private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-    private static final String MODEL_NAME = "llama3-8b-8192";
+    private static final String MODEL_NAME = "llama-3.3-70b-versatile";
+
+    private static List<Opportunity> cachedRecommendations = null;
+    private static long cacheTimestamp = 0;
+    private static final long CACHE_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 
     public interface OnRecommendationsListener {
         void onSuccess(List<Opportunity> opportunities);
@@ -34,6 +38,12 @@ public class GroqRecommendationHelper {
     }
 
     public static void getRecommendations(String volunteerId, OnRecommendationsListener listener) {
+        long now = System.currentTimeMillis();
+        if (cachedRecommendations != null && (now - cacheTimestamp) < CACHE_DURATION_MS) {
+            listener.onSuccess(cachedRecommendations);
+            return;
+        }
+
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // 1. Fetch Volunteer Data
@@ -113,8 +123,13 @@ public class GroqRecommendationHelper {
                         .build();
 
                 try (Response response = client.newCall(request).execute()) {
+                    int responseCode = response.code();
+                    if (responseCode == 429) {
+                        notifyError(listener, "Too many requests — please wait a minute and try again");
+                        return;
+                    }
                     if (!response.isSuccessful()) {
-                        notifyError(listener, "Groq API error: " + response.code());
+                        notifyError(listener, "Groq API error: " + responseCode);
                         return;
                     }
 
@@ -142,6 +157,8 @@ public class GroqRecommendationHelper {
                         }
                     }
 
+                    cachedRecommendations = recommendedOpps;
+                    cacheTimestamp = System.currentTimeMillis();
                     notifySuccess(listener, recommendedOpps);
                 }
             } catch (Exception e) {

@@ -49,7 +49,13 @@ public class AiRecommendationsActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
 
-        findViewById(R.id.btnRetry).setOnClickListener(v -> fetchRecommendations());
+        findViewById(R.id.btnRetry).setOnClickListener(v -> {
+            v.setEnabled(false);
+            v.postDelayed(() -> {
+                v.setEnabled(true);
+            }, 5000);
+            fetchRecommendations();
+        });
 
         rvRecommendations.setLayoutManager(new LinearLayoutManager(this));
         adapter = new RecommendationAdapter(recommendations);
@@ -116,13 +122,11 @@ public class AiRecommendationsActivity extends AppCompatActivity {
             Opportunity opp = list.get(position);
             holder.tvTitle.setText(opp.getTitle());
             holder.tvDescription.setText(opp.getOpportunityDescription());
-            // Using orgName as location proxy since Opportunity model doesn't have explicit location field in the provided model
-            // Actually prompt used title/desc/category. I'll use category if location isn't clear or just placeholder.
-            holder.tvLocation.setText(opp.getCategory()); 
+            holder.tvLocation.setText(opp.getLocation()); 
 
             holder.itemView.setOnClickListener(v -> {
                 Intent intent = new Intent(AiRecommendationsActivity.this, OpportunityDetailsActivity.class);
-                intent.putExtra("opportunityId", opp.getOpportunityId());
+                intent.putExtra("OPPORTUNITY_ID", opp.getOpportunityId());
                 startActivity(intent);
             });
         }

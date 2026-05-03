@@ -38,11 +38,30 @@
             android:text="Last message preview..." />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvTime"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="12sp"
-        android:text="12:00 PM" />
+        android:orientation="vertical"
+        android:gravity="end">
+
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="12:00 PM" />
+
+        <TextView
+            android:id="@+id/tvUnreadCount"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:background="@drawable/badge_unread_bg"
+            android:textColor="@android:color/white"
+            android:textSize="8sp"
+            android:gravity="center"
+            android:layout_marginTop="4dp"
+            android:visibility="gone"
+            android:text="1" />
+    </LinearLayout>
 
 </LinearLayout>
