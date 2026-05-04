@@ -20,6 +20,7 @@ public class User {
     private String lastName;
     private String surname;
     private String orgName;
+    private String profilePicUrl;
 
     public User() {} // Required for Firestore
 
@@ -77,12 +78,27 @@ public class User {
     public String getOrgName() { return orgName; }
     public void setOrgName(String orgName) { this.orgName = orgName; }
     
+    public String getProfilePicUrl() { return profilePicUrl; }
+    public void setProfilePicUrl(String profilePicUrl) { this.profilePicUrl = profilePicUrl; }
+    
     public String getDisplayName() {
-        if (orgName != null && !orgName.isEmpty()) return orgName;
-        if (firstName != null && !firstName.isEmpty()) {
-            String last = surname != null ? surname : lastName;
-            return firstName + (last != null ? " " + last : "");
+        if (orgName != null && !orgName.trim().isEmpty()) return orgName.trim();
+        
+        StringBuilder fullName = new StringBuilder();
+        if (firstName != null && !firstName.trim().isEmpty()) {
+            fullName.append(firstName.trim());
         }
-        return email;
+        
+        String last = surname != null ? surname : lastName;
+        if (last != null && !last.trim().isEmpty()) {
+            if (fullName.length() > 0) fullName.append(" ");
+            fullName.append(last.trim());
+        }
+        
+        if (fullName.length() > 0) return fullName.toString();
+        
+        if (email != null && !email.isEmpty()) return email;
+        
+        return "Anonymous User";
     }
 }

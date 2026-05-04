@@ -31,6 +31,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class VolunteerDashboardActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -42,7 +43,11 @@ public class VolunteerDashboardActivity extends AppCompatActivity
 
     private TextView tvWelcome, tvHoursVolunteered, tvProjectsCompleted, tvBadgesEarned;
     private TextView tvPendingCount, tvApprovedCount, tvRejectedCount;
+    private TextView tvTotalApplications, tvAppBreakdown, tvNotificationBadge;
+    private TextView tvRecentNotifyTitle, tvRecentNotifyBody;
+    private View ibNotificationBell, cardRecentNotification, vRecentNotifyDot;
     private LineChart activityChart;
+    private com.google.firebase.firestore.ListenerRegistration notificationListener;
 
     private View cardAiRecommendation;
     private View pbAiRec;
@@ -103,6 +108,69 @@ public class VolunteerDashboardActivity extends AppCompatActivity
         super.onResume();
         loadVolunteerData();
         loadApplicationStats();
+        listenToNotifications();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
+    }
+
+    private void listenToNotifications() {
+        notificationListener = db.collection("notifications")
+                .whereEqualTo("userId", volunteerId)
+                .addSnapshotListener((value, error) -> {
+                    if (value != null) {
+                        int unreadCount = 0;
+                        Map<String, Object> latestNotification = null;
+                        com.google.firebase.Timestamp latestTimestamp = null;
+
+                        for (com.google.firebase.firestore.QueryDocumentSnapshot doc : value) {
+                            Boolean isRead = doc.getBoolean("read");
+                            if (isRead != null && !isRead) {
+                                unreadCount++;
+                                
+                                com.google.firebase.Timestamp ts = doc.getTimestamp("createdAt");
+                                if (latestTimestamp == null || (ts != null && ts.compareTo(latestTimestamp) > 0)) {
+                                    latestTimestamp = ts;
+                                    latestNotification = doc.getData();
+                                }
+                            }
+                        }
+                        
+                        // Update badge
+                        if (unreadCount > 0) {
+                            tvNotificationBadge.setText(String.valueOf(unreadCount));
+                            tvNotificationBadge.setVisibility(View.VISIBLE);
+                        } else {
+                            tvNotificationBadge.setVisibility(View.GONE);
+                        }
+
+                        // Update recent notification card
+                        if (latestNotification != null) {
+                            cardRecentNotification.setVisibility(View.VISIBLE);
+                            tvRecentNotifyTitle.setText((String) latestNotification.get("title"));
+                            tvRecentNotifyBody.setText((String) latestNotification.get("body"));
+                            
+                            String type = (String) latestNotification.get("type");
+                            int dotColor = Color.GRAY;
+                            if (type != null) {
+                                switch (type) {
+                                    case "application_approved": dotColor = Color.parseColor("#10B981"); break;
+                                    case "application_rejected": dotColor = Color.parseColor("#EF4444"); break;
+                                    case "application_pending": dotColor = Color.parseColor("#F59E0B"); break;
+                                    case "chat_message": dotColor = Color.parseColor("#3B82F6"); break;
+                                }
+                            }
+                            vRecentNotifyDot.getBackground().setTint(dotColor);
+                        } else {
+                            cardRecentNotification.setVisibility(View.GONE);
+                        }
+                    }
+                });
     }
 
     private void initViews() {
@@ -114,6 +182,16 @@ public class VolunteerDashboardActivity extends AppCompatActivity
         tvPendingCount = findViewById(R.id.tvPendingCount);
         tvApprovedCount = findViewById(R.id.tvApprovedCount);
         tvRejectedCount = findViewById(R.id.tvRejectedCount);
+        tvTotalApplications = findViewById(R.id.tvTotalApplications);
+        tvAppBreakdown = findViewById(R.id.tvAppBreakdown);
+        
+        ibNotificationBell = findViewById(R.id.ibNotificationBell);
+        tvNotificationBadge = findViewById(R.id.tvNotificationBadge);
+        
+        cardRecentNotification = findViewById(R.id.cardRecentNotification);
+        vRecentNotifyDot = findViewById(R.id.vRecentNotifyDot);
+        tvRecentNotifyTitle = findViewById(R.id.tvRecentNotifyTitle);
+        tvRecentNotifyBody = findViewById(R.id.tvRecentNotifyBody);
         
         activityChart = findViewById(R.id.activityChart);
         
@@ -127,6 +205,10 @@ public class VolunteerDashboardActivity extends AppCompatActivity
         findViewById(R.id.cardPending).setOnClickListener(v -> openApplicationsList("pending"));
         findViewById(R.id.cardApproved).setOnClickListener(v -> openApplicationsList("approved"));
         findViewById(R.id.cardRejected).setOnClickListener(v -> openApplicationsList("rejected"));
+        findViewById(R.id.cardMyApplications).setOnClickListener(v -> openApplicationsList("all"));
+        
+        ibNotificationBell.setOnClickListener(v -> startActivity(new Intent(this, NotificationsActivity.class)));
+        cardRecentNotification.setOnClickListener(v -> startActivity(new Intent(this, NotificationsActivity.class)));
         
         findViewById(R.id.btnSeeAllRecommendations).setOnClickListener(v -> 
                 startActivity(new Intent(this, AiRecommendationsActivity.class)));
@@ -177,7 +259,7 @@ public class VolunteerDashboardActivity extends AppCompatActivity
 
         GroqRecommendationHelper.getRecommendations(volunteerId, new GroqRecommendationHelper.OnRecommendationsListener() {
             @Override
-            public void onSuccess(List<Opportunity> opportunities) {
+            public void onSuccess(List<Opportunity> opportunities, List<String> reasons) {
                 pbAiRec.setVisibility(View.GONE);
                 if (!opportunities.isEmpty()) {
                     Opportunity topMatch = opportunities.get(0);
@@ -223,26 +305,29 @@ public class VolunteerDashboardActivity extends AppCompatActivity
     }
 
     private void loadApplicationStats() {
-        // Pending (Sent)
         db.collection("applications")
                 .whereEqualTo("volunteerId", volunteerId)
-                .whereEqualTo("status", "pending")
                 .get()
-                .addOnSuccessListener(snap -> tvPendingCount.setText(String.valueOf(snap.size())));
+                .addOnSuccessListener(snap -> {
+                    int total = snap.size();
+                    int pending = 0;
+                    int approved = 0;
+                    int rejected = 0;
 
-        // Approved
-        db.collection("applications")
-                .whereEqualTo("volunteerId", volunteerId)
-                .whereEqualTo("status", "approved")
-                .get()
-                .addOnSuccessListener(snap -> tvApprovedCount.setText(String.valueOf(snap.size())));
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : snap.getDocuments()) {
+                        String status = doc.getString("status");
+                        if ("pending".equals(status)) pending++;
+                        else if ("approved".equals(status)) approved++;
+                        else if ("rejected".equals(status)) rejected++;
+                    }
 
-        // Rejected
-        db.collection("applications")
-                .whereEqualTo("volunteerId", volunteerId)
-                .whereEqualTo("status", "rejected")
-                .get()
-                .addOnSuccessListener(snap -> tvRejectedCount.setText(String.valueOf(snap.size())));
+                    tvPendingCount.setText(String.valueOf(pending));
+                    tvApprovedCount.setText(String.valueOf(approved));
+                    tvRejectedCount.setText(String.valueOf(rejected));
+                    
+                    tvTotalApplications.setText(total + (total == 1 ? " Application" : " Applications"));
+                    tvAppBreakdown.setText(pending + " pending, " + approved + " approved");
+                });
     }
 
     @Override

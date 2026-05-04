@@ -108,12 +108,29 @@
                 android:textStyle="italic"
                 tools:text="0 / 10 slots filled" />
 
-            <Button
-                android:id="@+id/btnApply"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Apply Now" />
+                android:orientation="horizontal"
+                android:layout_marginTop="24dp">
+
+                <Button
+                    android:id="@+id/btnApply"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Apply Now" />
+
+                <ImageButton
+                    android:id="@+id/btnMessageOrg"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:src="@android:drawable/stat_notify_chat"
+                    android:background="@drawable/rounded_button_outline"
+                    android:contentDescription="Message Organization"
+                    app:tint="?attr/colorPrimary" />
+            </LinearLayout>
 
             <ProgressBar
                 android:id="@+id/pbDetailsLoading"

@@ -102,6 +102,7 @@ dependencies {
 
     // MPAndroidChart for graphs
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("androidx.core:core-ktx:1.13.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

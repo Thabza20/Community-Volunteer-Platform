@@ -263,6 +263,64 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Impact Score Card — add between passport card and skills card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cvImpactCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="#1E0A3C"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="AI IMPACT SCORE"
+                        android:textColor="@color/passport_card_accent"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.1"
+                        android:layout_marginBottom="8dp"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:id="@+id/tvPassportImpactScore"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--"
+                            android:textColor="#F59E0B"
+                            android:textSize="48sp"
+                            android:textStyle="bold"
+                            android:layout_marginEnd="16dp"/>
+                        <ProgressBar
+                            android:id="@+id/pbPassportImpact"
+                            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                            android:layout_width="0dp"
+                            android:layout_height="8dp"
+                            android:layout_weight="1"
+                            android:max="100"
+                            android:progressTint="@color/passport_card_accent"/>
+                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/tvPassportImpactSummary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="13sp"
+                        android:layout_marginTop="8dp"
+                        android:maxLines="3"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- ── SKILLS SECTION ─────────────────────────────────────── -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"

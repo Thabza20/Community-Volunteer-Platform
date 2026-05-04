@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.error404.communityvolunteerplatform.R;
 import com.error404.communityvolunteerplatform.adapters.OrgApplicationAdapter;
 import com.error404.communityvolunteerplatform.models.Application;
+import com.error404.communityvolunteerplatform.helpers.NotificationHelper;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -84,7 +85,6 @@ public class EventApplicantsActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         db.collection("applications")
                 .whereEqualTo("opportunityId", opportunityId)
-                .orderBy("appliedAt", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     progressBar.setVisibility(View.GONE);
@@ -94,6 +94,13 @@ public class EventApplicantsActivity extends AppCompatActivity {
                         app.setApplicationId(doc.getId());
                         applicationList.add(app);
                     }
+                    
+                    // Local Sort by appliedAt
+                    applicationList.sort((a1, a2) -> {
+                        if (a1.getAppliedAt() == null || a2.getAppliedAt() == null) return 0;
+                        return a2.getAppliedAt().compareTo(a1.getAppliedAt());
+                    });
+
                     adapter.notifyDataSetChanged();
                     tvNoApplicants.setVisibility(applicationList.isEmpty() ? View.VISIBLE : View.GONE);
                 })
@@ -108,6 +115,18 @@ public class EventApplicantsActivity extends AppCompatActivity {
         db.collection("applications").document(application.getApplicationId())
                 .update("status", newStatus)
                 .addOnSuccessListener(aVoid -> {
+                    String title = "Application Update";
+                    String body = "Your application for " + (opportunityTitle != null ? opportunityTitle : "an opportunity") + " has been " + newStatus + ".";
+                    String type = "approved".equals(newStatus) ? "application_approved" : "application_rejected";
+                    
+                    NotificationHelper.createNotification(
+                            application.getVolunteerId(),
+                            title,
+                            body,
+                            type,
+                            application.getApplicationId()
+                    );
+
                     if ("approved".equals(newStatus)) {
                         // Increment slotsFilled in the opportunity document
                         db.collection("opportunities").document(opportunityId)

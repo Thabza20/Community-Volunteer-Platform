@@ -24,27 +24,40 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp"
         android:gravity="center_vertical"
-        android:background="#EEEEEE">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etMessage"
+        android:padding="8dp"
+        android:background="@android:color/white"
+        android:elevation="4dp">
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Type a message"
-            android:background="@android:color/white"
-            android:padding="12dp"
-            android:maxLines="4" />
-
+            android:layout_marginEnd="8dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:boxCornerRadiusBottomEnd="24dp"
+            app:boxCornerRadiusBottomStart="24dp"
+            app:boxCornerRadiusTopEnd="24dp"
+            app:boxCornerRadiusTopStart="24dp"
+            app:boxStrokeColor="@color/passport_card_accent">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Type a message"
+                android:maxLines="4"
+                android:inputType="textMultiLine"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"/>
+        </com.google.android.material.textfield.TextInputLayout>
         <ImageButton
             android:id="@+id/btnSend"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@android:drawable/ic_menu_send"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Send" />
+            android:background="@drawable/bg_send_button"
+            android:src="@drawable/ic_badge_events"
+            app:tint="@android:color/white"
+            android:padding="12dp"
+            android:contentDescription="Send"/>
     </LinearLayout>
 
 </LinearLayout>

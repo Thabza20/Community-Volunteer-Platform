@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp"
+    android:layout_marginBottom="12dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp">
 
@@ -15,54 +14,78 @@
         android:padding="16dp">
 
         <TextView
-            android:id="@+id/tvOppTitle"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvAppOppTitle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Opportunity Title"
             android:textColor="@color/black"
-            android:textSize="18sp"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tvOrgName"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvAppOrgName"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
             android:text="Organization Name"
-            android:textColor="#757575"
-            android:textSize="14sp" />
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tvStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="#FFE0B2"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:text="PENDING"
-                android:textColor="#F57C00"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@android:drawable/ic_menu_my_calendar"
+                app:tint="@color/text_secondary" />
 
             <TextView
-                android:id="@+id/tvAppliedDate"
+                android:id="@+id/tvAppDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Applied on: 2023-01-01"
-                android:textColor="#9E9E9E"
+                android:layout_marginStart="4dp"
+                android:text="01 Jan 2024"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipAppStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:clickable="false"
+                android:text="Pending"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                app:chipMinHeight="32dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnWithdraw"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:text="Withdraw"
+                android:textColor="#EF4444"
+                android:textSize="12sp"
+                android:visibility="gone"
+                app:strokeColor="#EF4444" />
+        </RelativeLayout>
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -281,6 +281,12 @@ public class SignUpActivity extends AppCompatActivity {
         String role = isOrg ? "organisation" : "volunteer";
 
         User user = new User(uid, role, email);
+        if (isOrg) {
+            user.setOrgName(etOrgName.getText().toString().trim());
+        } else {
+            user.setFirstName(etVolName.getText().toString().trim());
+            user.setSurname(etVolSurname.getText().toString().trim());
+        }
         user.setPopiaAccepted(true);
         user.setEmailVerified(true); // they verified via OTP
 

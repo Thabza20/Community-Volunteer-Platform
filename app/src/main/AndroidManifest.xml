@@ -75,6 +75,11 @@
             android:label="Opportunity Details"
             android:parentActivityName=".activities.BrowseOpportunitiesActivity" />
 
+        <activity
+            android:name=".activities.ApplyNowActivity"
+            android:label="Apply Now"
+            android:parentActivityName=".activities.OpportunityDetailsActivity"/>
+
         <meta-data
             android:name="com.google.android.gms.recaptcha.RECAPTCHA_SITE_KEY"
             android:value="6LcYHpkqAAAAAAnPixG3F-0BZqR6gTHPZyD6zS_z" />
@@ -117,6 +122,11 @@
         <activity
             android:name=".activities.ApplicationsListActivity"
             android:label="My Applications"
+            android:parentActivityName=".activities.VolunteerDashboardActivity" />
+
+        <activity
+            android:name=".activities.NotificationsActivity"
+            android:label="Notifications"
             android:parentActivityName=".activities.VolunteerDashboardActivity" />
 
         <activity

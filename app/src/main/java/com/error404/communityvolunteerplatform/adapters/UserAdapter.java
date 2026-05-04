@@ -11,16 +11,22 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.error404.communityvolunteerplatform.R;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
+import com.error404.communityvolunteerplatform.R;
+import com.error404.communityvolunteerplatform.helpers.UserHelper;
 import com.error404.communityvolunteerplatform.models.User;
-import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
 
     private List<User> userList;
     private OnUserClickListener listener;
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final Map<String, String> nameCache = new HashMap<>();
+    private final Map<String, String> picCache = new HashMap<>();
 
     public interface OnUserClickListener {
         void onUserClick(User user);
@@ -43,31 +49,26 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         User user = userList.get(position);
         holder.tvUserRole.setText(user.getRole());
         
-        // Use display name if already present in User object
-        holder.tvUserName.setText(user.getDisplayName());
-
-        // Fetch details from specific collections for more up-to-date info
-        String role = user.getRole();
-        if ("volunteer".equals(role)) {
-            db.collection("volunteers").document(user.getUserId()).get().addOnSuccessListener(doc -> {
-                if (doc.exists()) {
-                    String name = doc.getString("firstName") + " " + doc.getString("surname");
-                    holder.tvUserName.setText(name);
-                    String picUrl = doc.getString("profilePicUrl");
-                    if (picUrl != null && !picUrl.isEmpty()) {
-                        Glide.with(holder.itemView.getContext()).load(picUrl).placeholder(R.drawable.ic_launcher_background).into(holder.ivProfilePic);
-                    }
-                }
-            });
-        } else if ("organisation".equals(role) || "organization".equals(role)) {
-            db.collection("organisations").document(user.getUserId()).get().addOnSuccessListener(doc -> {
-                if (doc.exists()) {
-                    holder.tvUserName.setText(doc.getString("orgName"));
-                    String logoUrl = doc.getString("logoUrl");
-                    if (logoUrl != null && !logoUrl.isEmpty()) {
-                        Glide.with(holder.itemView.getContext()).load(logoUrl).placeholder(R.drawable.ic_launcher_background).into(holder.ivProfilePic);
-                    }
-                }
+        String userId = user.getUserId();
+        if (nameCache.containsKey(userId)) {
+            holder.tvUserName.setText(nameCache.get(userId));
+            String picUrl = picCache.get(userId);
+            if (picUrl != null && !picUrl.isEmpty()) {
+                Glide.with(holder.itemView.getContext())
+                        .load(picUrl)
+                        .transform(new CircleCrop())
+                        .placeholder(R.drawable.ic_default_avatar)
+                        .into(holder.ivProfilePic);
+            } else {
+                holder.ivProfilePic.setImageResource(R.drawable.ic_default_avatar);
+            }
+        } else {
+            holder.tvUserName.setText(holder.itemView.getContext().getString(R.string.loading));
+            holder.ivProfilePic.setImageResource(R.drawable.ic_default_avatar);
+            UserHelper.fetchDisplayName(userId, (name, picUrl) -> {
+                nameCache.put(userId, name);
+                picCache.put(userId, picUrl);
+                notifyItemChanged(holder.getAdapterPosition());
             });
         }
 

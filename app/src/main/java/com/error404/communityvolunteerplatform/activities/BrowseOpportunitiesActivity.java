@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BrowseOpportunitiesActivity extends AppCompatActivity {
 
@@ -124,9 +125,7 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
                 } else {
                     rvOpportunities.setVisibility(View.GONE);
                     mapView.setVisibility(View.VISIBLE);
-                    if (!isPinsLoaded) {
-                        loadOpportunityPins();
-                    }
+                    loadOpportunityPins();
                 }
             }
 
@@ -173,7 +172,6 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
     }
 
     private void loadOpportunityPins() {
-        isPinsLoaded = true;
         runOnUiThread(() -> {
             mapView.getOverlays().clear();
             mapView.invalidate();
@@ -181,9 +179,21 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
 
         new Thread(() -> {
             List<Opportunity> currentFiltered = new ArrayList<>(filteredList);
+            if (currentFiltered.isEmpty()) {
+                isPinsLoaded = true;
+                return;
+            }
+
+            AtomicInteger remaining = new AtomicInteger(currentFiltered.size());
+
             for (Opportunity op : currentFiltered) {
                 String loc = op.getLocation();
-                if (loc == null || loc.isEmpty()) continue;
+                if (loc == null || loc.isEmpty()) {
+                    if (remaining.decrementAndGet() == 0) {
+                        isPinsLoaded = true;
+                    }
+                    continue;
+                }
 
                 try {
                     List<Address> addresses = geocoder.getFromLocationName(loc, 1);
@@ -193,6 +203,10 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
                     }
                 } catch (IOException e) {
                     Log.e("MapGeocode", "Failed to geocode: " + loc);
+                } finally {
+                    if (remaining.decrementAndGet() == 0) {
+                        isPinsLoaded = true;
+                    }
                 }
             }
         }).start();
@@ -207,6 +221,11 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
         // Custom Info Window
         CustomInfoWindow infoWindow = new CustomInfoWindow(R.layout.map_info_window, mapView, op.getOpportunityId());
         marker.setInfoWindow(infoWindow);
+
+        marker.setOnMarkerClickListener((m, mapV) -> {
+            m.showInfoWindow();
+            return true;
+        });
         
         mapView.getOverlays().add(marker);
         mapView.invalidate();
@@ -222,21 +241,26 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
 
         @Override
         public void onOpen(Object item) {
-            super.onOpen(item);
             Marker marker = (Marker) item;
             
             TextView tvTitle = mView.findViewById(R.id.tvInfoTitle);
             TextView tvLocation = mView.findViewById(R.id.tvInfoLocation);
+            TextView tvViewDetails = mView.findViewById(R.id.tvViewDetails);
             
             tvTitle.setText(marker.getTitle());
             tvLocation.setText(marker.getSnippet());
 
-            mView.setOnClickListener(v -> {
+            View.OnClickListener detailsListener = v -> {
                 Intent intent = new Intent(BrowseOpportunitiesActivity.this, OpportunityDetailsActivity.class);
                 intent.putExtra("OPPORTUNITY_ID", opportunityId);
                 startActivity(intent);
                 close();
-            });
+            };
+
+            mView.setOnClickListener(detailsListener);
+            if (tvViewDetails != null) {
+                tvViewDetails.setOnClickListener(detailsListener);
+            }
         }
     }
 

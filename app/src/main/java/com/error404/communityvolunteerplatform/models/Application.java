@@ -21,6 +21,9 @@ public class Application {
     private boolean withdrawnStatus;     // true if volunteer withdrew
     private String rejectionReason;      // custom or DEFAULT_REJECTION_MESSAGE — nullable
     private String cvFileUrl;            // Firebase Storage URL — nullable
+    private String refName;
+    private String refPhone;
+    private String refEmail;
     private CvParsed cvParsed;           // Affinda parsed data — nullable
     private String cvParseStatus;        // "pending" | "done" | "failed" | null
     private Timestamp appliedAt;
@@ -97,6 +100,15 @@ public class Application {
 
     public String getCvFileUrl() { return cvFileUrl; }
     public void setCvFileUrl(String cvFileUrl) { this.cvFileUrl = cvFileUrl; }
+
+    public String getRefName() { return refName; }
+    public void setRefName(String refName) { this.refName = refName; }
+
+    public String getRefPhone() { return refPhone; }
+    public void setRefPhone(String refPhone) { this.refPhone = refPhone; }
+
+    public String getRefEmail() { return refEmail; }
+    public void setRefEmail(String refEmail) { this.refEmail = refEmail; }
 
     public CvParsed getCvParsed() { return cvParsed; }
     public void setCvParsed(CvParsed cvParsed) { this.cvParsed = cvParsed; }

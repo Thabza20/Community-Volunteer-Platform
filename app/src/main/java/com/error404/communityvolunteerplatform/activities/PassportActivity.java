@@ -23,8 +23,10 @@ import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.error404.communityvolunteerplatform.R;
 import com.error404.communityvolunteerplatform.helpers.BadgeEngine;
 import com.error404.communityvolunteerplatform.helpers.CloudinaryManager;
+import com.error404.communityvolunteerplatform.helpers.GroqRecommendationHelper;
 import com.error404.communityvolunteerplatform.models.Volunteer;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
@@ -48,6 +50,11 @@ public class PassportActivity extends AppCompatActivity {
     private MaterialButton btnRemovePhoto;
     private MaterialButton btnEditProfile;
     private ProgressBar    pbUpload;
+
+    private MaterialCardView cvImpactCard;
+    private TextView tvPassportImpactScore;
+    private TextView tvPassportImpactSummary;
+    private ProgressBar pbPassportImpact;
 
     private FirebaseFirestore db;
     private String            currentUserId;
@@ -80,6 +87,7 @@ public class PassportActivity extends AppCompatActivity {
         }
 
         loadPassportData();
+        loadImpactScore();
         btnChangePhoto.setOnClickListener(v -> openImagePicker());
         btnRemovePhoto.setOnClickListener(v -> removePhoto());
         btnEditProfile.setOnClickListener(v -> {
@@ -101,6 +109,25 @@ public class PassportActivity extends AppCompatActivity {
         return true;
     }
 
+    private void loadImpactScore() {
+        if (currentUserId == null) return;
+        GroqRecommendationHelper.getImpactSummary(currentUserId,
+                new GroqRecommendationHelper.OnImpactListener() {
+                    @Override
+                    public void onSuccess(String summary, int score) {
+                        cvImpactCard.setVisibility(View.VISIBLE);
+                        tvPassportImpactScore.setText(String.valueOf(score));
+                        pbPassportImpact.setProgress(score);
+                        tvPassportImpactSummary.setText(summary);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        cvImpactCard.setVisibility(View.GONE);
+                    }
+                });
+    }
+
     private void bindViews() {
         ivProfilePhoto    = findViewById(R.id.ivPassportPhoto);
         tvVolunteerName   = findViewById(R.id.tvPassportName);
@@ -114,6 +141,11 @@ public class PassportActivity extends AppCompatActivity {
         btnRemovePhoto    = findViewById(R.id.btnRemovePhoto);
         btnEditProfile    = findViewById(R.id.btnEditProfile);
         pbUpload          = findViewById(R.id.pbUpload);
+
+        cvImpactCard = findViewById(R.id.cvImpactCard);
+        tvPassportImpactScore = findViewById(R.id.tvPassportImpactScore);
+        tvPassportImpactSummary = findViewById(R.id.tvPassportImpactSummary);
+        pbPassportImpact = findViewById(R.id.pbPassportImpact);
     }
 
     private void removePhoto() {

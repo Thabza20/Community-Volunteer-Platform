@@ -10,7 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.error404.communityvolunteerplatform.R;
+import com.error404.communityvolunteerplatform.helpers.UserHelper;
 import com.error404.communityvolunteerplatform.models.Chat;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -18,8 +20,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder> {
 
@@ -27,6 +31,8 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
     private final String currentUserId;
     private final OnChatClickListener listener;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final Map<String, String> nameCache = new HashMap<>();
+    private final Map<String, String> profilePicCache = new HashMap<>();
 
     public interface OnChatClickListener {
         void onChatClick(String chatId, String otherUserId);
@@ -78,25 +84,35 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             holder.tvUnreadCount.setVisibility(View.GONE);
         }
 
-        // Fetch other user details
+        // Fetch other user details with caching
         String finalOtherUserId = otherUserId;
-        db.collection("users").document(otherUserId).get().addOnSuccessListener(userDoc -> {
-            if (userDoc.exists()) {
-                String fullName = userDoc.getString("fullName");
-                if (fullName == null) fullName = userDoc.getString("orgName"); // Fallback
-                if (fullName == null) fullName = "User";
-                
-                holder.tvUserName.setText(fullName);
-                
-                String profilePicUrl = userDoc.getString("profilePicUrl");
-                Glide.with(holder.itemView.getContext())
-                        .load(profilePicUrl)
-                        .circleCrop()
-                        .placeholder(R.drawable.ic_default_avatar)
-                        .error(R.drawable.ic_default_avatar)
-                        .into(holder.ivProfilePic);
+        if (!finalOtherUserId.isEmpty()) {
+            if (nameCache.containsKey(finalOtherUserId)) {
+                holder.tvUserName.setText(nameCache.get(finalOtherUserId));
+                String picUrl = profilePicCache.get(finalOtherUserId);
+                if (picUrl != null && !picUrl.isEmpty()) {
+                    Glide.with(holder.itemView.getContext())
+                            .load(picUrl)
+                            .transform(new CircleCrop())
+                            .placeholder(R.drawable.ic_default_avatar)
+                            .error(R.drawable.ic_default_avatar)
+                            .into(holder.ivProfilePic);
+                } else {
+                    holder.ivProfilePic.setImageResource(R.drawable.ic_default_avatar);
+                }
+            } else {
+                holder.tvUserName.setText("User"); // Default while loading
+                holder.ivProfilePic.setImageResource(R.drawable.ic_default_avatar);
+
+                UserHelper.fetchDisplayName(finalOtherUserId, (name, picUrl) -> {
+                    nameCache.put(finalOtherUserId, name);
+                    profilePicCache.put(finalOtherUserId, picUrl);
+
+                    // Re-bind this specific item if it's still visible
+                    notifyItemChanged(holder.getAdapterPosition());
+                });
             }
-        });
+        }
 
         holder.itemView.setOnClickListener(v -> listener.onChatClick(chatId, finalOtherUserId));
     }

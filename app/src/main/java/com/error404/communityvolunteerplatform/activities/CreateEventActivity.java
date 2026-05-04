@@ -26,7 +26,7 @@ import java.util.Locale;
 
 public class CreateEventActivity extends AppCompatActivity {
 
-    private TextInputEditText etEventName, etDescription, etDate, etVolunteersNeeded;
+    private TextInputEditText etEventName, etDescription, etEventLocation, etDate, etVolunteersNeeded;
     private Spinner spinnerCategory;
     private MaterialCheckBox cbRequiresExperience, cbRequiresQualification;
     private MaterialButton btnCreateEvent;
@@ -68,6 +68,7 @@ public class CreateEventActivity extends AppCompatActivity {
 
         etEventName = findViewById(R.id.etEventName);
         etDescription = findViewById(R.id.etDescription);
+        etEventLocation = findViewById(R.id.etEventLocation);
         etDate = findViewById(R.id.etDate);
         etVolunteersNeeded = findViewById(R.id.etVolunteersNeeded);
         spinnerCategory = findViewById(R.id.spinnerCategory);
@@ -123,17 +124,18 @@ public class CreateEventActivity extends AppCompatActivity {
 
     private void saveEvent() {
         if (etEventName.getText() == null || etDescription.getText() == null ||
-            etDate.getText() == null || etVolunteersNeeded.getText() == null) {
+            etEventLocation.getText() == null || etDate.getText() == null || etVolunteersNeeded.getText() == null) {
             return;
         }
 
         String title = etEventName.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
+        String eventLocation = etEventLocation.getText().toString().trim();
         String date = etDate.getText().toString().trim();
         String slotsStr = etVolunteersNeeded.getText().toString().trim();
         String category = spinnerCategory.getSelectedItem().toString();
 
-        if (TextUtils.isEmpty(title) || TextUtils.isEmpty(description) || TextUtils.isEmpty(date) || TextUtils.isEmpty(slotsStr)) {
+        if (TextUtils.isEmpty(title) || TextUtils.isEmpty(description) || TextUtils.isEmpty(eventLocation) || TextUtils.isEmpty(date) || TextUtils.isEmpty(slotsStr)) {
             Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -159,7 +161,7 @@ public class CreateEventActivity extends AppCompatActivity {
 
         int slotsTotal = Integer.parseInt(slotsStr);
 
-        Opportunity event = new Opportunity(orgId, orgName, title, orgLocation, orgDescription, description, category, slotsTotal);
+        Opportunity event = new Opportunity(orgId, orgName, title, eventLocation, orgDescription, description, category, slotsTotal);
         event.setEventDate(date);
         event.setRequiresExperience(cbRequiresExperience.isChecked());
         event.setRequiresQualification(cbRequiresQualification.isChecked());

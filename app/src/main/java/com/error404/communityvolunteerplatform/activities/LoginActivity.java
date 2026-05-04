@@ -85,11 +85,6 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        if (!isValidPassword(password)) {
-            showError("Password does not meet requirements");
-            return;
-        }
-
         btnLogin.setEnabled(false);
         showError("Authenticating...");
 
@@ -110,7 +105,19 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         String role = documentSnapshot.getString("role");
-                        String selectedTab = tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString().toLowerCase();
+                        String selectedTabRaw = tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString().toLowerCase();
+                        
+                        // Map localized strings to internal role names if necessary
+                        String selectedTab;
+                        if (selectedTabRaw.equals(getString(R.string.role_admin).toLowerCase())) {
+                            selectedTab = "admin";
+                        } else if (selectedTabRaw.equals(getString(R.string.role_volunteer).toLowerCase())) {
+                            selectedTab = "volunteer";
+                        } else if (selectedTabRaw.equals(getString(R.string.role_organisation).toLowerCase())) {
+                            selectedTab = "organisation";
+                        } else {
+                            selectedTab = selectedTabRaw;
+                        }
 
                         // Basic security: check if user is logging into the correct tab
                         boolean isVolunteer = "volunteer".equals(role);
@@ -135,7 +142,7 @@ public class LoginActivity extends AppCompatActivity {
                         } else {
                             mAuth.signOut();
                             btnLogin.setEnabled(true);
-                            showError("Access Denied: You are not registered as a " + selectedTab);
+                            showError("Access Denied: You are not registered as " + selectedTabRaw);
                         }
                     } else {
                         mAuth.signOut();

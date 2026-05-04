@@ -22,16 +22,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class OrganizationDashboardActivity extends AppCompatActivity {
 
     private TextView tvActiveOpportunities, tvTotalVolunteers, tvTotalOpportunities,
-            tvPendingApplications, tvApprovedApplications, tvCompletionRate;
+            tvPendingApplications, tvApprovedApplications, tvCompletionRate, tvNotificationBadge;
 
     private Button btnCreateOpportunity;
     private CardView cvViewOpportunities;
-    private ImageView ivProfileIcon;
+    private ImageView ivProfileIcon, ivChatIcon, ivNotificationBell;
     private ProgressBar pbDashboard;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private String orgId;
+    private com.google.firebase.firestore.ListenerRegistration notificationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +60,15 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadDashboardData();
+        listenToNotifications();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (notificationListener != null) {
+            notificationListener.remove();
+        }
     }
 
     private void initializeViews() {
@@ -68,16 +78,50 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
         tvPendingApplications = findViewById(R.id.tvPendingApplications);
         tvApprovedApplications = findViewById(R.id.tvApprovedApplications);
         tvCompletionRate = findViewById(R.id.tvCompletionRate);
+        tvNotificationBadge = findViewById(R.id.tvNotificationBadge);
 
         btnCreateOpportunity = findViewById(R.id.btnCreateOpportunity);
         cvViewOpportunities = findViewById(R.id.cvViewOpportunities);
         ivProfileIcon = findViewById(R.id.ivProfileIcon);
+        ivChatIcon = findViewById(R.id.ivChatIcon);
+        ivNotificationBell = findViewById(R.id.ivNotificationBell);
         pbDashboard = findViewById(R.id.pbDashboard);
+    }
+
+    private void listenToNotifications() {
+        notificationListener = db.collection("notifications")
+                .whereEqualTo("userId", orgId)
+                .addSnapshotListener((value, error) -> {
+                    if (value != null) {
+                        int unreadCount = 0;
+                        for (com.google.firebase.firestore.QueryDocumentSnapshot doc : value) {
+                            Boolean isRead = doc.getBoolean("read");
+                            if (isRead != null && !isRead) {
+                                unreadCount++;
+                            }
+                        }
+
+                        if (unreadCount > 0) {
+                            tvNotificationBadge.setText(String.valueOf(unreadCount));
+                            tvNotificationBadge.setVisibility(View.VISIBLE);
+                        } else {
+                            tvNotificationBadge.setVisibility(View.GONE);
+                        }
+                    }
+                });
     }
 
     private void setupClickListeners() {
         ivProfileIcon.setOnClickListener(v ->
                 startActivity(new Intent(OrganizationDashboardActivity.this, OrganizationProfileActivity.class))
+        );
+
+        ivChatIcon.setOnClickListener(v ->
+                startActivity(new Intent(OrganizationDashboardActivity.this, RecentChatsActivity.class))
+        );
+
+        ivNotificationBell.setOnClickListener(v ->
+                startActivity(new Intent(OrganizationDashboardActivity.this, NotificationsActivity.class))
         );
 
         btnCreateOpportunity.setOnClickListener(v ->

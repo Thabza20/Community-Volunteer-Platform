@@ -1,5 +1,6 @@
 package com.error404.communityvolunteerplatform.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -59,10 +60,22 @@ public class OpportunityDetailsActivity extends AppCompatActivity {
         btnApply = findViewById(R.id.btnApply);
         pbLoading = findViewById(R.id.pbDetailsLoading);
 
+        findViewById(R.id.btnMessageOrg).setOnClickListener(v -> {
+            if (orgId != null) {
+                Intent intent = new Intent(this, MessagesActivity.class);
+                intent.putExtra("otherUserId", orgId);
+                startActivity(intent);
+            }
+        });
+
         loadOpportunityDetails();
         checkIfAlreadyApplied();
 
-        btnApply.setOnClickListener(v -> applyForOpportunity());
+        btnApply.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ApplyNowActivity.class);
+            intent.putExtra("OPPORTUNITY_ID", opportunityId);
+            startActivity(intent);
+        });
     }
 
     private void checkIfAlreadyApplied() {

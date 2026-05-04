@@ -42,8 +42,7 @@ public class CloudinaryManager {
                 .option("folder", "volunteer_profiles")
                 .option("public_id", volunteerId)
                 .option("overwrite", true)
-                .option("resource_type", "image")
-                .option("transformation", "c_fill,w_400,h_400,g_face,q_auto,f_auto")
+                .option("resource_type", "auto")
                 .callback(new UploadCallback() {
                     @Override
                     public void onStart(String requestId) {
