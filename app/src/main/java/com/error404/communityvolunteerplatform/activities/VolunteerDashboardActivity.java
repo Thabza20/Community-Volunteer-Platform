@@ -46,7 +46,6 @@ public class VolunteerDashboardActivity extends AppCompatActivity
     private TextView tvTotalApplications, tvAppBreakdown, tvNotificationBadge;
     private TextView tvRecentNotifyTitle, tvRecentNotifyBody;
     private View ibNotificationBell, cardRecentNotification, vRecentNotifyDot;
-    private LineChart activityChart;
     private com.google.firebase.firestore.ListenerRegistration notificationListener;
 
     private View cardAiRecommendation;
@@ -100,7 +99,6 @@ public class VolunteerDashboardActivity extends AppCompatActivity
         loadVolunteerData();
         loadApplicationStats();
         loadAiRecommendation();
-        setupChart();
     }
 
     @Override
@@ -193,8 +191,6 @@ public class VolunteerDashboardActivity extends AppCompatActivity
         tvRecentNotifyTitle = findViewById(R.id.tvRecentNotifyTitle);
         tvRecentNotifyBody = findViewById(R.id.tvRecentNotifyBody);
         
-        activityChart = findViewById(R.id.activityChart);
-        
         cardAiRecommendation = findViewById(R.id.cardAiRecommendation);
         pbAiRec = findViewById(R.id.pbAiRec);
         tvAiRecTitle = findViewById(R.id.tvAiRecTitle);
@@ -212,43 +208,15 @@ public class VolunteerDashboardActivity extends AppCompatActivity
         
         findViewById(R.id.btnSeeAllRecommendations).setOnClickListener(v -> 
                 startActivity(new Intent(this, AiRecommendationsActivity.class)));
+
+        findViewById(R.id.fab_ai_assistant).setOnClickListener(v -> 
+                startActivity(new Intent(this, AiChatbotActivity.class)));
     }
 
     private void openApplicationsList(String status) {
         Intent intent = new Intent(this, ApplicationsListActivity.class);
         intent.putExtra("status", status);
         startActivity(intent);
-    }
-
-    private void setupChart() {
-        List<Entry> entries = new ArrayList<>();
-        // Dummy data for now: Recent activity over 5 days
-        entries.add(new Entry(0, 2));
-        entries.add(new Entry(1, 4));
-        entries.add(new Entry(2, 1));
-        entries.add(new Entry(3, 5));
-        entries.add(new Entry(4, 3));
-
-        LineDataSet dataSet = new LineDataSet(entries, "Hours Volunteered");
-        dataSet.setColor(Color.BLUE);
-        dataSet.setValueTextColor(Color.BLACK);
-        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
-        dataSet.setDrawFilled(true);
-        dataSet.setFillColor(Color.BLUE);
-        dataSet.setFillAlpha(75);
-
-        LineData lineData = new LineData(dataSet);
-        activityChart.setData(lineData);
-        
-        activityChart.getDescription().setEnabled(false);
-        activityChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
-        activityChart.getXAxis().setDrawGridLines(false);
-        
-        String[] days = new String[]{"Mon", "Tue", "Wed", "Thu", "Fri"};
-        activityChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(days));
-        activityChart.getAxisRight().setEnabled(false);
-        
-        activityChart.invalidate(); 
     }
 
     private void loadAiRecommendation() {

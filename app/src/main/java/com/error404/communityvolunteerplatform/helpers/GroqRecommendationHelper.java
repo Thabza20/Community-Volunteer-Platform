@@ -56,6 +56,11 @@ public class GroqRecommendationHelper {
         void onError(String message);
     }
 
+    public interface OnChatListener {
+        void onSuccess(String reply);
+        void onError(String message);
+    }
+
     public static void clearCache() {
         cachedRecommendations = null;
         cachedReasons = null;
@@ -413,6 +418,69 @@ public class GroqRecommendationHelper {
 
                         coverLetterCache.put(cacheKey, content);
                         new Handler(Looper.getMainLooper()).post(() -> listener.onSuccess(content));
+                    }
+                } catch (Exception e) {
+                    new Handler(Looper.getMainLooper()).post(() -> listener.onError(e.getMessage()));
+                }
+            }).start();
+        }).addOnFailureListener(e -> listener.onError(e.getMessage()));
+    }
+
+    public static void sendChatMessage(String volunteerId, String userMessage, List<java.util.Map<String, String>> conversationHistory, String opportunitiesContext, OnChatListener listener) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("volunteers").document(volunteerId).get().addOnSuccessListener(doc -> {
+            String volunteerSummary = "Name: " + doc.getString("fullName") +
+                    ", Skills: " + (doc.get("skills") != null ? String.join(", ", (List<String>) doc.get("skills")) : "None") +
+                    ", Hours: " + doc.getDouble("totalHours") +
+                    ", Events: " + doc.getLong("projectsCompleted");
+
+            new Thread(() -> {
+                try {
+                    JSONObject jsonBody = new JSONObject();
+                    jsonBody.put("model", MODEL_NAME);
+                    jsonBody.put("temperature", 0.7);
+
+                    JSONArray messages = new JSONArray();
+
+                    // System message
+                    String systemPrompt = "You are a friendly and helpful volunteer assistant for a South African community volunteer platform. You help volunteers find opportunities, understand the app, and track their progress. Keep all responses under 100 words and conversational. Active opportunities available: " + opportunitiesContext + ". Volunteer profile: " + volunteerSummary + ".";
+                    messages.put(new JSONObject().put("role", "system").put("content", systemPrompt));
+
+                    // History
+                    if (conversationHistory != null) {
+                        for (java.util.Map<String, String> msg : conversationHistory) {
+                            messages.put(new JSONObject().put("role", msg.get("role")).put("content", msg.get("content")));
+                        }
+                    }
+
+                    // New user message
+                    messages.put(new JSONObject().put("role", "user").put("content", userMessage));
+
+                    jsonBody.put("messages", messages);
+
+                    OkHttpClient client = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build();
+                    RequestBody body = RequestBody.create(jsonBody.toString(), MediaType.parse("application/json; charset=utf-8"));
+                    Request request = new Request.Builder()
+                            .url(GROQ_API_URL)
+                            .addHeader("Authorization", "Bearer " + BuildConfig.GROQ_API_KEY)
+                            .post(body)
+                            .build();
+
+                    try (Response response = client.newCall(request).execute()) {
+                        if (!response.isSuccessful()) {
+                            new Handler(Looper.getMainLooper()).post(() -> listener.onError("API Error: " + response.code()));
+                            return;
+                        }
+
+                        okhttp3.ResponseBody respBody = response.body();
+                        if (respBody == null) {
+                            new Handler(Looper.getMainLooper()).post(() -> listener.onError("Empty response"));
+                            return;
+                        }
+                        JSONObject jsonResponse = new JSONObject(respBody.string());
+                        String reply = jsonResponse.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content").trim();
+
+                        new Handler(Looper.getMainLooper()).post(() -> listener.onSuccess(reply));
                     }
                 } catch (Exception e) {
                     new Handler(Looper.getMainLooper()).post(() -> listener.onError(e.getMessage()));

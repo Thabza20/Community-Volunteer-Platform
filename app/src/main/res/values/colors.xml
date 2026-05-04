@@ -24,5 +24,11 @@
     <color name="badge_tile_bg">#F3F0FF</color>
     <color name="background_main">#F5F5F5</color>
 
+    <!-- AI Chatbot colors -->
+    <color name="chat_user_teal">#008080</color>
+    <color name="chat_bot_gray">#E0E0E0</color>
+    <color name="chat_text_user">#FFFFFF</color>
+    <color name="chat_text_bot">#212121</color>
+
 
 </resources>

@@ -160,6 +160,11 @@
             android:parentActivityName=".activities.AdminDashboardActivity" />
 
         <activity
+            android:name=".activities.AiChatbotActivity"
+            android:label="Volunteer Assistant"
+            android:parentActivityName=".activities.VolunteerDashboardActivity" />
+
+        <activity
             android:name=".activities.AdminTrackProgramsActivity"
             android:label="Track Programs"
             android:parentActivityName=".activities.AdminDashboardActivity" />
