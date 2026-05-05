@@ -14,6 +14,7 @@ import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.error404.communityvolunteerplatform.R;
 import com.error404.communityvolunteerplatform.helpers.UserHelper;
 import com.error404.communityvolunteerplatform.models.Chat;
+import com.error404.communityvolunteerplatform.models.User;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -104,12 +105,15 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                 holder.tvUserName.setText("User"); // Default while loading
                 holder.ivProfilePic.setImageResource(R.drawable.ic_default_avatar);
 
-                UserHelper.fetchDisplayName(finalOtherUserId, (name, picUrl) -> {
-                    nameCache.put(finalOtherUserId, name);
-                    profilePicCache.put(finalOtherUserId, picUrl);
-
-                    // Re-bind this specific item if it's still visible
-                    notifyItemChanged(holder.getAdapterPosition());
+                db.collection("users").document(finalOtherUserId).get().addOnSuccessListener(userDoc -> {
+                    User user = userDoc.toObject(User.class);
+                    if (user != null) {
+                        String displayName = user.getDisplayName();
+                        String picUrl = user.getProfilePicUrl();
+                        nameCache.put(finalOtherUserId, displayName);
+                        profilePicCache.put(finalOtherUserId, picUrl);
+                        notifyItemChanged(holder.getAdapterPosition());
+                    }
                 });
             }
         }

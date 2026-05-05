@@ -35,6 +35,10 @@ public class UsersListActivity extends AppCompatActivity {
     private List<User> userList = new ArrayList<>();
     private UserAdapter adapter;
 
+    public static List<User> cachedUsers = null;
+    private static long userCacheTimestamp = 0;
+    private static final long USER_CACHE_MS = 5 * 60 * 1000;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,21 +66,33 @@ public class UsersListActivity extends AppCompatActivity {
 
     private void loadUsers() {
         if (currentUserId == null) return;
+        long now = System.currentTimeMillis();
+        if (cachedUsers != null && (now - userCacheTimestamp) < USER_CACHE_MS) {
+            userList.clear();
+            userList.addAll(cachedUsers);
+            adapter.notifyDataSetChanged();
+            progressBar.setVisibility(View.GONE);
+            return;
+        }
         progressBar.setVisibility(View.VISIBLE);
 
         db.collection("users").get().addOnCompleteListener(task -> {
             progressBar.setVisibility(View.GONE);
             if (task.isSuccessful() && task.getResult() != null) {
-                userList.clear();
+                List<User> freshList = new ArrayList<>();
                 for (DocumentSnapshot doc : task.getResult()) {
                     User user = doc.toObject(User.class);
                     if (user != null) {
                         user.setUserId(doc.getId());
                         if (!user.getUserId().equals(currentUserId)) {
-                            userList.add(user);
+                            freshList.add(user);
                         }
                     }
                 }
+                cachedUsers = freshList;
+                userCacheTimestamp = System.currentTimeMillis();
+                userList.clear();
+                userList.addAll(freshList);
                 adapter.notifyDataSetChanged();
             } else {
                 Toast.makeText(this, "Error loading users", Toast.LENGTH_SHORT).show();

@@ -47,29 +47,17 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         User user = userList.get(position);
-        holder.tvUserRole.setText(user.getRole());
-        
-        String userId = user.getUserId();
-        if (nameCache.containsKey(userId)) {
-            holder.tvUserName.setText(nameCache.get(userId));
-            String picUrl = picCache.get(userId);
-            if (picUrl != null && !picUrl.isEmpty()) {
-                Glide.with(holder.itemView.getContext())
-                        .load(picUrl)
-                        .transform(new CircleCrop())
-                        .placeholder(R.drawable.ic_default_avatar)
-                        .into(holder.ivProfilePic);
-            } else {
-                holder.ivProfilePic.setImageResource(R.drawable.ic_default_avatar);
-            }
+        holder.tvUserName.setText(user.getDisplayName());
+        holder.tvUserRole.setText(user.getRole() != null ? user.getRole() : "");
+
+        if (user.getProfilePicUrl() != null && !user.getProfilePicUrl().isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(user.getProfilePicUrl())
+                    .transform(new CircleCrop())
+                    .placeholder(R.drawable.ic_default_avatar)
+                    .into(holder.ivProfilePic);
         } else {
-            holder.tvUserName.setText(holder.itemView.getContext().getString(R.string.loading));
             holder.ivProfilePic.setImageResource(R.drawable.ic_default_avatar);
-            UserHelper.fetchDisplayName(userId, (name, picUrl) -> {
-                nameCache.put(userId, name);
-                picCache.put(userId, picUrl);
-                notifyItemChanged(holder.getAdapterPosition());
-            });
         }
 
         holder.itemView.setOnClickListener(v -> listener.onUserClick(user));
