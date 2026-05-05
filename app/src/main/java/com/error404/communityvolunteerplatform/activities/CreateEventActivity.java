@@ -2,7 +2,11 @@ package com.error404.communityvolunteerplatform.activities;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -11,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.error404.communityvolunteerplatform.R;
+import com.error404.communityvolunteerplatform.helpers.GroqRecommendationHelper;
 import com.error404.communityvolunteerplatform.models.Opportunity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
@@ -29,7 +34,7 @@ public class CreateEventActivity extends AppCompatActivity {
     private TextInputEditText etEventName, etDescription, etEventLocation, etDate, etVolunteersNeeded;
     private Spinner spinnerCategory;
     private MaterialCheckBox cbRequiresExperience, cbRequiresQualification;
-    private MaterialButton btnCreateEvent;
+    private MaterialButton btnCreateEvent, btnGenerateAi;
 
     private FirebaseFirestore db;
     private String orgId;
@@ -53,6 +58,7 @@ public class CreateEventActivity extends AppCompatActivity {
         initializeViews();
         fetchOrgName();
         setupCategorySpinner();
+        setupAiDescriptionLogic();
 
         etDate.setOnClickListener(v -> showDatePicker());
         btnCreateEvent.setOnClickListener(v -> saveEvent());
@@ -75,6 +81,68 @@ public class CreateEventActivity extends AppCompatActivity {
         cbRequiresExperience = findViewById(R.id.cbRequiresExperience);
         cbRequiresQualification = findViewById(R.id.cbRequiresQualification);
         btnCreateEvent = findViewById(R.id.btnCreateEvent);
+        btnGenerateAi = findViewById(R.id.btnGenerateAi);
+    }
+
+    private void setupAiDescriptionLogic() {
+        TextWatcher watcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateAiButtonState();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        };
+
+        etEventName.addTextChangedListener(watcher);
+
+        spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateAiButtonState();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        btnGenerateAi.setOnClickListener(v -> generateAiDescription());
+    }
+
+    private void updateAiButtonState() {
+        String title = etEventName.getText() != null ? etEventName.getText().toString().trim() : "";
+        boolean hasCategory = spinnerCategory.getSelectedItem() != null;
+        btnGenerateAi.setEnabled(!title.isEmpty() && hasCategory);
+    }
+
+    private void generateAiDescription() {
+        String title = etEventName.getText().toString().trim();
+        String category = spinnerCategory.getSelectedItem().toString();
+        String location = etEventLocation.getText().toString().trim();
+        String currentOrgName = (orgName != null) ? orgName : "Our Organisation";
+
+        btnGenerateAi.setEnabled(false);
+        btnGenerateAi.setText(R.string.ai_generating);
+
+        GroqRecommendationHelper.generateOpportunityDescription(title, category, location, currentOrgName, new GroqRecommendationHelper.OnDescriptionListener() {
+            @Override
+            public void onSuccess(String description) {
+                etDescription.setText(description);
+                btnGenerateAi.setEnabled(true);
+                btnGenerateAi.setText(R.string.ai_generate_btn);
+            }
+
+            @Override
+            public void onError(String message) {
+                Toast.makeText(CreateEventActivity.this, "AI Error: " + message, Toast.LENGTH_SHORT).show();
+                btnGenerateAi.setEnabled(true);
+                btnGenerateAi.setText(R.string.ai_generate_btn);
+            }
+        });
     }
 
     private void fetchOrgName() {

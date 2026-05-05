@@ -369,7 +369,7 @@
             android:id="@+id/cvViewOpportunities"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="12dp"
             app:cardCornerRadius="12dp"
             app:cardElevation="4dp"
             app:cardBackgroundColor="#FFFFFF"
@@ -401,6 +401,18 @@
                     android:textColor="#757575" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
+
+        <!-- View Analytics Button -->
+        <Button
+            android:id="@+id/btnViewAnalytics"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="View Analytics"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#2196F3"
+            android:layout_marginBottom="24dp" />
 
     </LinearLayout>
 </ScrollView>

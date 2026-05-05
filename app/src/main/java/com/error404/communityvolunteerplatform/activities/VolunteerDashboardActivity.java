@@ -306,6 +306,8 @@ public class VolunteerDashboardActivity extends AppCompatActivity
             startActivity(new Intent(this, BrowseOpportunitiesActivity.class));
         } else if (id == R.id.nav_ai_recommendations) {
             startActivity(new Intent(this, AiRecommendationsActivity.class));
+        } else if (id == R.id.nav_skills_gap) {
+            startActivity(new Intent(this, SkillsGapActivity.class));
         } else if (id == R.id.nav_my_applications) {
             openApplicationsList("all");
         } else if (id == R.id.nav_passport) {

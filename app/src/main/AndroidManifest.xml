@@ -165,9 +165,29 @@
             android:parentActivityName=".activities.VolunteerDashboardActivity" />
 
         <activity
+            android:name=".activities.OrgAnalyticsActivity"
+            android:label="Analytics Dashboard"
+            android:parentActivityName=".activities.OrganizationDashboardActivity" />
+
+        <activity
+            android:name=".activities.SkillsGapActivity"
+            android:label="Skills Gap Analysis"
+            android:parentActivityName=".activities.AiRecommendationsActivity" />
+
+        <activity
             android:name=".activities.AdminTrackProgramsActivity"
             android:label="Track Programs"
             android:parentActivityName=".activities.AdminDashboardActivity" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
     </application>
 

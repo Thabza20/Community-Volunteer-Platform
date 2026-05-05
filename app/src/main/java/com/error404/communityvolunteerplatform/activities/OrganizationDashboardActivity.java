@@ -24,7 +24,7 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
     private TextView tvActiveOpportunities, tvTotalVolunteers, tvTotalOpportunities,
             tvPendingApplications, tvApprovedApplications, tvCompletionRate, tvNotificationBadge;
 
-    private Button btnCreateOpportunity;
+    private Button btnCreateOpportunity, btnViewAnalytics;
     private CardView cvViewOpportunities;
     private ImageView ivProfileIcon, ivChatIcon, ivNotificationBell;
     private ProgressBar pbDashboard;
@@ -81,6 +81,7 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
         tvNotificationBadge = findViewById(R.id.tvNotificationBadge);
 
         btnCreateOpportunity = findViewById(R.id.btnCreateOpportunity);
+        btnViewAnalytics = findViewById(R.id.btnViewAnalytics);
         cvViewOpportunities = findViewById(R.id.cvViewOpportunities);
         ivProfileIcon = findViewById(R.id.ivProfileIcon);
         ivChatIcon = findViewById(R.id.ivChatIcon);
@@ -128,6 +129,11 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
                 startActivity(new Intent(OrganizationDashboardActivity.this, CreateEventActivity.class))
         );
 
+        btnViewAnalytics.setOnClickListener(v -> {
+            Intent intent = new Intent(OrganizationDashboardActivity.this, OrgAnalyticsActivity.class);
+            intent.putExtra("orgId", orgId);
+            startActivity(intent);
+        });
 
         cvViewOpportunities.setOnClickListener(v ->
                 startActivity(new Intent(OrganizationDashboardActivity.this, ManageOpportunitiesActivity.class))

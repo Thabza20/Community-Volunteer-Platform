@@ -45,6 +45,18 @@
                 </LinearLayout>
 
                 <ImageButton
+                    android:id="@+id/btnSkillsGap"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_toStartOf="@id/ibRefresh"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_badge_events"
+                    app:tint="@color/primary_purple"
+                    android:contentDescription="Skills Gap" />
+
+                <ImageButton
                     android:id="@+id/ibRefresh"
                     android:layout_width="48dp"
                     android:layout_height="48dp"

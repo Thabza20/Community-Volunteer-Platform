@@ -60,4 +60,7 @@
     <string name="save_profile">Save Profile</string>
     <string name="detect_location">Detect My Location</string>
     <string name="loading">Loading...</string>
+    <string name="ai_generate_btn">Generate with AI ✦</string>
+    <string name="ai_generating">Generating...</string>
+    <string name="ai_description_hint">AI will draft a description based on your title and category</string>
 </resources>

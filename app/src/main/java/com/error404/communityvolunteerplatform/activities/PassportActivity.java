@@ -3,7 +3,13 @@
 package com.error404.communityvolunteerplatform.activities;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Typeface;
+import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -17,6 +23,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CircleCrop;
@@ -32,7 +39,13 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class PassportActivity extends AppCompatActivity {
 
@@ -49,6 +62,7 @@ public class PassportActivity extends AppCompatActivity {
     private MaterialButton btnChangePhoto;
     private MaterialButton btnRemovePhoto;
     private MaterialButton btnEditProfile;
+    private MaterialButton btnSharePassport;
     private ProgressBar    pbUpload;
 
     private MaterialCardView cvImpactCard;
@@ -93,6 +107,7 @@ public class PassportActivity extends AppCompatActivity {
         btnEditProfile.setOnClickListener(v -> {
             startActivity(new Intent(this, EditProfileActivity.class));
         });
+        btnSharePassport.setOnClickListener(v -> generateAndSharePassportPDF());
     }
 
     @Override
@@ -140,6 +155,7 @@ public class PassportActivity extends AppCompatActivity {
         btnChangePhoto    = findViewById(R.id.btnChangePhoto);
         btnRemovePhoto    = findViewById(R.id.btnRemovePhoto);
         btnEditProfile    = findViewById(R.id.btnEditProfile);
+        btnSharePassport  = findViewById(R.id.btnSharePassport);
         pbUpload          = findViewById(R.id.pbUpload);
 
         cvImpactCard = findViewById(R.id.cvImpactCard);
@@ -238,6 +254,144 @@ public class PassportActivity extends AppCompatActivity {
         }
 
         populateBadges(v.getBadgeIds());
+    }
+
+    private void generateAndSharePassportPDF() {
+        if (currentVolunteer == null) {
+            Toast.makeText(this, "Profile data not loaded yet.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Generating PDF Passport...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        // Use a background task or just run on UI since it's simple
+        new Thread(() -> {
+            try {
+                PdfDocument document = new PdfDocument();
+                // A4 size: 595 x 842 points
+                PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create();
+                PdfDocument.Page page = document.startPage(pageInfo);
+                Canvas canvas = page.getCanvas();
+
+                int margin = (int) (40 * getResources().getDisplayMetrics().density / 2); // approximate 40dp
+                if (margin < 40) margin = 40; // ensuring at least some margin
+
+                Paint paint = new Paint();
+
+                // 1. Header Rectangle
+                paint.setColor(Color.parseColor("#1D9E75"));
+                canvas.drawRect(0, 0, 595, 150, paint);
+
+                // 2. Volunteer Name
+                paint.setColor(Color.WHITE);
+                paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                paint.setTextSize(28);
+                canvas.drawText(currentVolunteer.getFullName(), margin, 70, paint);
+
+                // 3. Subtitle
+                paint.setTextSize(16);
+                paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+                canvas.drawText("Community Volunteer Passport", margin, 100, paint);
+
+                // 4. Content - Stats
+                paint.setColor(Color.BLACK);
+                int y = 200;
+                paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                paint.setTextSize(14);
+                canvas.drawText("VOLUNTEER STATISTICS", margin, y, paint);
+                y += 30;
+
+                paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+                drawLabelValue(canvas, paint, "Total Hours Volunteered:", String.valueOf((int)currentVolunteer.getTotalHours()), margin, y);
+                y += 25;
+                drawLabelValue(canvas, paint, "Events Completed:", String.valueOf(currentVolunteer.getProjectsCompleted()), margin, y);
+                y += 25;
+                drawLabelValue(canvas, paint, "Badges Earned:", String.valueOf(currentVolunteer.getBadgeIds() != null ? currentVolunteer.getBadgeIds().size() : 0), margin, y);
+                y += 50;
+
+                // 5. Skills
+                paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                canvas.drawText("SKILLS", margin, y, paint);
+                y += 25;
+                paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+                String skillsStr = (currentVolunteer.getSkills() != null && !currentVolunteer.getSkills().isEmpty())
+                        ? String.join(", ", currentVolunteer.getSkills())
+                        : "No skills listed";
+                
+                // Handle text wrapping for skills if needed (simple version)
+                if (skillsStr.length() > 70) {
+                   canvas.drawText(skillsStr.substring(0, 70) + "...", margin, y, paint);
+                } else {
+                   canvas.drawText(skillsStr, margin, y, paint);
+                }
+                y += 50;
+
+                // 6. Badges Details
+                if (currentVolunteer.getBadgeIds() != null && !currentVolunteer.getBadgeIds().isEmpty()) {
+                    paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                    canvas.drawText("BADGES EARNED", margin, y, paint);
+                    y += 25;
+                    paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+                    for (String badgeId : currentVolunteer.getBadgeIds()) {
+                        canvas.drawText("• " + BadgeEngine.getBadgeName(badgeId), margin + 10, y, paint);
+                        y += 20;
+                        if (y > 750) break; // simple page overflow prevention
+                    }
+                    y += 30;
+                }
+
+                // 7. Location
+                paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                canvas.drawText("LOCATION", margin, y, paint);
+                y += 25;
+                paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+                canvas.drawText(currentVolunteer.getLocation() != null ? currentVolunteer.getLocation() : "Not specified", margin, y, paint);
+
+                // 8. Footer
+                paint.setColor(Color.GRAY);
+                paint.setTextSize(10);
+                String date = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(new Date());
+                canvas.drawText("Generated by Community Volunteer Platform on " + date, margin, 810, paint);
+
+                document.finishPage(page);
+
+                File file = new File(getCacheDir(), "volunteer_passport.pdf");
+                document.writeTo(new FileOutputStream(file));
+                document.close();
+
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    sharePDF(file);
+                });
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(this, "Error generating PDF: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+            }
+        }).start();
+    }
+
+    private void drawLabelValue(Canvas canvas, Paint paint, String label, String value, int x, int y) {
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        canvas.drawText(label, x, y, paint);
+        float width = paint.measureText(label);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+        canvas.drawText(" " + value, x + width, y, paint);
+    }
+
+    private void sharePDF(File file) {
+        Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("application/pdf");
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(Intent.createChooser(intent, "Share Volunteer Passport"));
     }
 
     private void populateBadges(List<String> badgeIds) {

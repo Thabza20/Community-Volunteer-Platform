@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvSkillName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Skill Name"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@color/primary_purple"/>
+
+        <TextView
+            android:id="@+id/tvReason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="This is why you should learn this skill."
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/btnAddProfile"
+            style="@style/Widget.MaterialComponents.Chip.Action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="end"
+            android:text="Add to profile"
+            app:chipIcon="@android:drawable/ic_input_add"
+            app:chipBackgroundColor="@color/chip_skill_background"
+            app:chipIconTint="@color/chip_skill_text"
+            android:textColor="@color/chip_skill_text"/>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

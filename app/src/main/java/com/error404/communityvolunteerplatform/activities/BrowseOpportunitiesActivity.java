@@ -54,6 +54,7 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private boolean isPinsLoaded = false;
     private Geocoder geocoder;
+    private Thread loadPinsThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,53 +173,73 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
     }
 
     private void loadOpportunityPins() {
+        // Cancel any existing loading thread
+        if (loadPinsThread != null && loadPinsThread.isAlive()) {
+            loadPinsThread.interrupt();
+        }
+
         runOnUiThread(() -> {
             mapView.getOverlays().clear();
             mapView.invalidate();
         });
 
-        new Thread(() -> {
+        loadPinsThread = new Thread(() -> {
             List<Opportunity> currentFiltered = new ArrayList<>(filteredList);
             if (currentFiltered.isEmpty()) {
                 isPinsLoaded = true;
                 return;
             }
 
+            List<Marker> markersToAdd = new ArrayList<>();
             AtomicInteger remaining = new AtomicInteger(currentFiltered.size());
 
             for (Opportunity op : currentFiltered) {
+                if (Thread.interrupted()) return;
+
                 String loc = op.getLocation();
                 if (loc == null || loc.isEmpty()) {
-                    if (remaining.decrementAndGet() == 0) {
-                        isPinsLoaded = true;
-                    }
+                    if (remaining.decrementAndGet() == 0) isPinsLoaded = true;
                     continue;
                 }
 
                 try {
                     List<Address> addresses = geocoder.getFromLocationName(loc, 1);
-                    if (addresses != null && !addresses.isEmpty()) {
+                    if (addresses != null && !addresses.isEmpty() && !Thread.interrupted()) {
                         GeoPoint point = new GeoPoint(addresses.get(0).getLatitude(), addresses.get(0).getLongitude());
-                        runOnUiThread(() -> addMarker(op, point));
+                        
+                        // Create marker on background thread (Marker construction is mostly data)
+                        Marker marker = createMarker(op, point);
+                        markersToAdd.add(marker);
                     }
                 } catch (IOException e) {
                     Log.e("MapGeocode", "Failed to geocode: " + loc);
                 } finally {
                     if (remaining.decrementAndGet() == 0) {
                         isPinsLoaded = true;
+                        // Final batch add to UI
+                        if (!markersToAdd.isEmpty()) {
+                            runOnUiThread(() -> {
+                                if (!Thread.interrupted()) {
+                                    mapView.getOverlays().addAll(markersToAdd);
+                                    mapView.invalidate();
+                                }
+                            });
+                        }
                     }
                 }
             }
-        }).start();
+        });
+        loadPinsThread.start();
     }
 
-    private void addMarker(Opportunity op, GeoPoint point) {
+    private Marker createMarker(Opportunity op, GeoPoint point) {
         Marker marker = new Marker(mapView);
         marker.setPosition(point);
         marker.setTitle(op.getTitle());
         marker.setSnippet(op.getLocation());
         
-        // Custom Info Window
+        // We must create the InfoWindow on the UI thread or ensure it doesn't touch UI immediately
+        // For osmdroid, it's safer to set the layout but the actual View creation happens on show
         CustomInfoWindow infoWindow = new CustomInfoWindow(R.layout.map_info_window, mapView, op.getOpportunityId());
         marker.setInfoWindow(infoWindow);
 
@@ -226,10 +247,9 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
             m.showInfoWindow();
             return true;
         });
-        
-        mapView.getOverlays().add(marker);
-        mapView.invalidate();
+        return marker;
     }
+
 
     private class CustomInfoWindow extends MarkerInfoWindow {
         private String opportunityId;
@@ -337,6 +357,14 @@ public class BrowseOpportunitiesActivity extends AppCompatActivity {
         } else {
             isPinsLoaded = false;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (loadPinsThread != null && loadPinsThread.isAlive()) {
+            loadPinsThread.interrupt();
+        }
+        super.onDestroy();
     }
 
     @Override

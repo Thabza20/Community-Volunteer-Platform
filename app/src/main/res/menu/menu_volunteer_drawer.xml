@@ -3,6 +3,7 @@
 
     <item android:id="@+id/nav_browse_opportunities" android:title="Browse Opportunities" />
     <item android:id="@+id/nav_ai_recommendations" android:title="For You" />
+    <item android:id="@+id/nav_skills_gap" android:title="Skills Gap Analysis" />
     <item android:id="@+id/nav_my_applications" android:title="My Applications" />
     <item android:id="@+id/nav_passport" android:title="My Passport" />
     <item android:id="@+id/nav_chats" android:title="Chats" />

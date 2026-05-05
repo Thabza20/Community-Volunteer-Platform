@@ -39,7 +39,7 @@ public class AiRecommendationsActivity extends AppCompatActivity {
     private MaterialCardView cvImpactCard;
     private TextView tvImpactScore, tvImpactSummary;
     private ProgressBar pbImpactScore;
-    private ImageButton ibRefresh;
+    private ImageButton ibRefresh, btnSkillsGap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +62,10 @@ public class AiRecommendationsActivity extends AppCompatActivity {
             if (uid != null) loadImpactSummary(uid);
         });
 
+        btnSkillsGap.setOnClickListener(v -> {
+            startActivity(new Intent(this, SkillsGapActivity.class));
+        });
+
         findViewById(R.id.btnRetry).setOnClickListener(v -> {
             fetchRecommendations();
             if (uid != null) loadImpactSummary(uid);
@@ -78,6 +82,7 @@ public class AiRecommendationsActivity extends AppCompatActivity {
         tvImpactSummary = findViewById(R.id.tvImpactSummary);
         pbImpactScore = findViewById(R.id.pbImpactScore);
         ibRefresh = findViewById(R.id.ibRefresh);
+        btnSkillsGap = findViewById(R.id.btnSkillsGap);
     }
 
     private void setupToolbar() {

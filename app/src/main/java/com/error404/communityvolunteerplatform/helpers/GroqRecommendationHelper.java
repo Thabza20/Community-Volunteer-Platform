@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.error404.communityvolunteerplatform.BuildConfig;
 import com.error404.communityvolunteerplatform.models.Opportunity;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -59,6 +60,163 @@ public class GroqRecommendationHelper {
     public interface OnChatListener {
         void onSuccess(String reply);
         void onError(String message);
+    }
+
+    public interface OnDescriptionListener {
+        void onSuccess(String description);
+        void onError(String message);
+    }
+
+    public static void generateOpportunityDescription(String title, String category, String location, String orgName, OnDescriptionListener listener) {
+        new Thread(() -> {
+            try {
+                String prompt = "Write a compelling volunteer opportunity description for the following:\n" +
+                        "Title: " + title + "\n" +
+                        "Category: " + category + "\n" +
+                        "Location: " + location + "\n" +
+                        "Organisation: " + orgName + "\n\n" +
+                        "Write exactly 3 short paragraphs in this order:\n" +
+                        "1. What volunteers will do day-to-day (2-3 sentences)\n" +
+                        "2. What skills or qualities would be helpful (2-3 sentences)\n" +
+                        "3. What positive impact they will make on the community (2 sentences)\n\n" +
+                        "Tone: professional but warm. Max 130 words total.\n" +
+                        "Return ONLY the description text. No headings, no bullet points, no extra text.";
+
+                JSONObject jsonBody = new JSONObject();
+                jsonBody.put("model", MODEL_NAME);
+                JSONArray messages = new JSONArray();
+                messages.put(new JSONObject().put("role", "user").put("content", prompt));
+                jsonBody.put("messages", messages);
+                jsonBody.put("temperature", 0.7);
+                jsonBody.put("max_tokens", 300);
+
+                OkHttpClient client = new OkHttpClient.Builder()
+                        .connectTimeout(30, TimeUnit.SECONDS)
+                        .readTimeout(30, TimeUnit.SECONDS)
+                        .build();
+
+                RequestBody body = RequestBody.create(jsonBody.toString(), MediaType.parse("application/json; charset=utf-8"));
+                Request request = new Request.Builder()
+                        .url(GROQ_API_URL)
+                        .addHeader("Authorization", "Bearer " + BuildConfig.GROQ_API_KEY)
+                        .post(body)
+                        .build();
+
+                try (Response response = client.newCall(request).execute()) {
+                    if (!response.isSuccessful()) {
+                        new Handler(Looper.getMainLooper()).post(() -> listener.onError("API Error: " + response.code()));
+                        return;
+                    }
+
+                    okhttp3.ResponseBody respBody = response.body();
+                    if (respBody == null) {
+                        new Handler(Looper.getMainLooper()).post(() -> listener.onError("Empty response"));
+                        return;
+                    }
+                    JSONObject jsonResponse = new JSONObject(respBody.string());
+                    String description = jsonResponse.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content").trim();
+
+                    new Handler(Looper.getMainLooper()).post(() -> listener.onSuccess(description));
+                }
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> listener.onError(e.getMessage()));
+            }
+        }).start();
+    }
+
+    public interface OnSkillsGapListener {
+        void onSuccess(List<String> missingSkills, List<String> reasons);
+        void onError(String message);
+    }
+
+    public static void getSkillsGapAnalysis(String volunteerId, OnSkillsGapListener listener) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("volunteers").document(volunteerId).get().addOnSuccessListener(userDoc -> {
+            if (!userDoc.exists()) {
+                listener.onError("User not found");
+                return;
+            }
+
+            List<String> userSkills = (List<String>) userDoc.get("skills");
+            if (userSkills == null) userSkills = new ArrayList<>();
+            final List<String> finalUserSkills = userSkills;
+
+            db.collection("opportunities")
+                    .whereEqualTo("status", "active")
+                    .get()
+                    .addOnSuccessListener(oppsDocs -> {
+                        java.util.Map<String, Integer> categoryFreq = new java.util.HashMap<>();
+                        for (DocumentSnapshot doc : oppsDocs) {
+                            String category = doc.getString("category");
+                            if (category != null) {
+                                categoryFreq.put(category, categoryFreq.getOrDefault(category, 0) + 1);
+                            }
+                        }
+
+                        StringBuilder categoriesStr = new StringBuilder();
+                        for (java.util.Map.Entry<String, Integer> entry : categoryFreq.entrySet()) {
+                            categoriesStr.append(entry.getKey()).append(" (").append(entry.getValue()).append("), ");
+                        }
+
+                        String prompt = "Volunteer current skills: " + finalUserSkills + ". \n" +
+                                "Most demanded categories across " + oppsDocs.size() + " active opportunities: " + categoriesStr + ".\n" +
+                                "Identify the top 3 skills this volunteer should develop to access more opportunities in these high-demand categories. \n" +
+                                "Return ONLY a JSON array of objects: [{\"skill\":\"...\",\"reason\":\"One sentence why this skill is in demand\"}]. No markdown, no extra text.";
+
+                        new Thread(() -> {
+                            try {
+                                JSONObject jsonBody = new JSONObject();
+                                jsonBody.put("model", MODEL_NAME);
+                                JSONArray messages = new JSONArray();
+                                messages.put(new JSONObject().put("role", "user").put("content", prompt));
+                                jsonBody.put("messages", messages);
+                                jsonBody.put("temperature", 0.2);
+
+                                OkHttpClient client = new OkHttpClient();
+                                RequestBody body = RequestBody.create(jsonBody.toString(), MediaType.parse("application/json; charset=utf-8"));
+                                Request request = new Request.Builder()
+                                        .url(GROQ_API_URL)
+                                        .addHeader("Authorization", "Bearer " + BuildConfig.GROQ_API_KEY)
+                                        .post(body)
+                                        .build();
+
+                                try (Response response = client.newCall(request).execute()) {
+                                    if (!response.isSuccessful()) {
+                                        new Handler(Looper.getMainLooper()).post(() -> listener.onError("API Error: " + response.code()));
+                                        return;
+                                    }
+
+                                    String respStr = response.body().string();
+                                    JSONObject fullResp = new JSONObject(respStr);
+                                    String content = fullResp.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content").trim();
+                                    
+                                    // Clean json if markdown present
+                                    if (content.startsWith("```json")) {
+                                        content = content.substring(7, content.length() - 3).trim();
+                                    } else if (content.startsWith("```")) {
+                                        content = content.substring(3, content.length() - 3).trim();
+                                    }
+
+                                    JSONArray arr = new JSONArray(content);
+                                    List<String> skills = new ArrayList<>();
+                                    List<String> reasons = new ArrayList<>();
+                                    for (int i = 0; i < arr.length(); i++) {
+                                        JSONObject obj = arr.getJSONObject(i);
+                                        skills.add(obj.getString("skill"));
+                                        reasons.add(obj.getString("reason"));
+                                    }
+
+                                    new Handler(Looper.getMainLooper()).post(() -> listener.onSuccess(skills, reasons));
+                                }
+                            } catch (Exception e) {
+                                new Handler(Looper.getMainLooper()).post(() -> listener.onError(e.getMessage()));
+                            }
+                        }).start();
+
+                    }).addOnFailureListener(e -> listener.onError(e.getMessage()));
+
+        }).addOnFailureListener(e -> listener.onError(e.getMessage()));
     }
 
     public static void clearCache() {
