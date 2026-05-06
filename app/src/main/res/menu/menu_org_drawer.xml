@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_create_opp"
+            android:icon="@android:drawable/ic_menu_add"
+            android:title="Create New Opportunity" />
+        <item
+            android:id="@+id/nav_manage_opps"
+            android:icon="@android:drawable/ic_menu_manage"
+            android:title="Manage Opportunities" />
+    </group>
+
+    <item android:title="Account">
+        <menu>
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@android:drawable/ic_menu_revert"
+                android:title="Logout" />
+        </menu>
+    </item>
+</menu>

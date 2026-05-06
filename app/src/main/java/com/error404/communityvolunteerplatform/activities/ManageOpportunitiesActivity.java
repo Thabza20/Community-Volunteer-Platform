@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.error404.communityvolunteerplatform.R;
 import com.error404.communityvolunteerplatform.adapters.OpportunityManagementAdapter;
 import com.error404.communityvolunteerplatform.models.Opportunity;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -33,7 +32,7 @@ public class ManageOpportunitiesActivity extends AppCompatActivity {
     private List<Opportunity> allOpportunities = new ArrayList<>();
     private List<Opportunity> filteredOpportunities = new ArrayList<>();
     private Map<String, Integer> applicantCounts = new HashMap<>();
-    
+
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
     private String orgId;
@@ -45,7 +44,7 @@ public class ManageOpportunitiesActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
-        
+
         if (mAuth.getCurrentUser() != null) {
             orgId = mAuth.getCurrentUser().getUid();
         } else {
@@ -62,7 +61,7 @@ public class ManageOpportunitiesActivity extends AppCompatActivity {
 
         rvOpportunities = findViewById(R.id.rvOpportunities);
         rvOpportunities.setLayoutManager(new LinearLayoutManager(this));
-        
+
         adapter = new OpportunityManagementAdapter(filteredOpportunities, applicantCounts, opportunity -> {
             Intent intent = new Intent(ManageOpportunitiesActivity.this, EventApplicantsActivity.class);
             intent.putExtra("OPPORTUNITY_ID", opportunity.getOpportunityId());
@@ -71,11 +70,7 @@ public class ManageOpportunitiesActivity extends AppCompatActivity {
         });
         rvOpportunities.setAdapter(adapter);
 
-        FloatingActionButton fab = findViewById(R.id.fabAddOpportunity);
-        fab.setOnClickListener(v -> {
-            // TODO: Open Create Opportunity Activity
-            Toast.makeText(this, "Create Opportunity", Toast.LENGTH_SHORT).show();
-        });
+        // FloatingActionButton code has been removed from here
 
         EditText etSearch = findViewById(R.id.etSearch);
         etSearch.addTextChangedListener(new TextWatcher() {
