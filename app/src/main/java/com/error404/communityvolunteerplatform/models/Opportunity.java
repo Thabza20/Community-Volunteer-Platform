@@ -40,6 +40,7 @@ public class Opportunity {
     private String experienceRefPhone;   // nullable
     private String experienceRefEmail;   // nullable
     private boolean requiresQualification;
+    private String requiredQualificationsText;
     private String qualificationFileUrl; // Firebase Storage URL — nullable
     private Timestamp createdAt;
     private Timestamp updatedAt;
@@ -128,6 +129,9 @@ public class Opportunity {
 
     public boolean isRequiresQualification() { return requiresQualification; }
     public void setRequiresQualification(boolean requiresQualification) { this.requiresQualification = requiresQualification; }
+
+    public String getRequiredQualificationsText() { return requiredQualificationsText; }
+    public void setRequiredQualificationsText(String requiredQualificationsText) { this.requiredQualificationsText = requiredQualificationsText; }
 
     public String getQualificationFileUrl() { return qualificationFileUrl; }
     public void setQualificationFileUrl(String qualificationFileUrl) { this.qualificationFileUrl = qualificationFileUrl; }

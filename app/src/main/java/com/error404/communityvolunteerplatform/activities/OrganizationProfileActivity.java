@@ -97,25 +97,40 @@ public class OrganizationProfileActivity extends AppCompatActivity {
 
 
     private void loadProfile() {
+        db.collection("users").document(currentUserId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String name = documentSnapshot.getString("name");
+                        String email = documentSnapshot.getString("email");
+                        String logoUrl = documentSnapshot.getString("logoUrl");
+
+                        etOrgName.setText(name);
+                        etEmail.setText(email);
+                        if (logoUrl != null && !logoUrl.isEmpty()) {
+                            com.bumptech.glide.Glide.with(this).load(logoUrl).placeholder(R.drawable.ic_default_avatar).into(imgOrgLogo);
+                        }
+
+                        // Now load details from organisations collection
+                        loadOrgDetails();
+                    }
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Error loading user profile", Toast.LENGTH_SHORT).show());
+    }
+
+    private void loadOrgDetails() {
         db.collection("organisations").document(currentUserId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         currentOrg = documentSnapshot.toObject(Organisation.class);
                         if (currentOrg != null) {
-                            currentOrg.setUserId(documentSnapshot.getId());
-                            etOrgName.setText(currentOrg.getOrgName());
-                            etEmail.setText(currentOrg.getEmail());
                             etOrgNumber.setText(currentOrg.getOrgNumber());
                             etLocation.setText(currentOrg.getLocation());
                             etOrgDetails.setText(currentOrg.getOrgDetails());
                             etPrimaryPhone.setText(currentOrg.getPrimaryPhoneNumber());
-                            
-                            // Load logo if exists
-                            // if (currentOrg.getLogoUrl() != null) { Glide.with(this).load(currentOrg.getLogoUrl()).into(imgOrgLogo); }
                         }
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Error loading profile", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(this, "Error loading organization details", Toast.LENGTH_SHORT).show());
     }
 
     private void saveProfile() {
@@ -133,15 +148,19 @@ public class OrganizationProfileActivity extends AppCompatActivity {
         btnSaveProfile.setEnabled(false);
         Toast.makeText(this, "Saving profile...", Toast.LENGTH_SHORT).show();
 
-        db.collection("organisations").document(currentUserId)
-                .update("orgName", name,
-                        "orgNumber", number,
-                        "location", location,
-                        "orgDetails", details,
-                        "primaryPhoneNumber", phone)
+        com.google.firebase.firestore.WriteBatch batch = db.batch();
+        batch.update(db.collection("users").document(currentUserId), "name", name);
+        batch.update(db.collection("organisations").document(currentUserId),
+                "orgName", name,
+                "orgNumber", number,
+                "location", location,
+                "orgDetails", details,
+                "primaryPhoneNumber", phone);
+
+        batch.commit()
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Profile successfully saved!", Toast.LENGTH_SHORT).show();
-                    finish(); // Return to Organization Dashboard
+                    finish();
                 })
                 .addOnFailureListener(e -> {
                     btnSaveProfile.setEnabled(true);

@@ -42,6 +42,7 @@ public class VolunteerDashboardActivity extends AppCompatActivity
     private String volunteerId;
 
     private TextView tvWelcome, tvHoursVolunteered, tvProjectsCompleted, tvBadgesEarned;
+    private TextView tvNavName; // Add this
     private TextView tvPendingCount, tvApprovedCount, tvRejectedCount;
     private TextView tvTotalApplications, tvAppBreakdown, tvNotificationBadge;
     private TextView tvRecentNotifyTitle, tvRecentNotifyBody;
@@ -173,6 +174,15 @@ public class VolunteerDashboardActivity extends AppCompatActivity
 
     private void initViews() {
         tvWelcome = findViewById(R.id.tvWelcome);
+        
+        // Setup Nav Header View
+        NavigationView navigationView = findViewById(R.id.navigationView);
+        View headerView = navigationView.getHeaderView(0);
+        if (headerView == null) {
+            headerView = navigationView.inflateHeaderView(R.layout.nav_header);
+        }
+        tvNavName = headerView.findViewById(R.id.tvNavOrgName);
+        
         tvHoursVolunteered = findViewById(R.id.tvHoursVolunteered);
         tvProjectsCompleted = findViewById(R.id.tvProjectsCompleted);
         tvBadgesEarned = findViewById(R.id.tvBadgesEarned);
@@ -255,7 +265,12 @@ public class VolunteerDashboardActivity extends AppCompatActivity
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
                         String firstName = doc.getString("firstName");
-                        tvWelcome.setText("Welcome, " + (firstName != null ? firstName : "Volunteer"));
+                        String welcomeText = "Welcome, " + (firstName != null ? firstName : "Volunteer");
+                        tvWelcome.setText(welcomeText);
+                        
+                        if (tvNavName != null) {
+                            tvNavName.setText(firstName != null ? firstName : "Volunteer");
+                        }
 
                         Double hours = doc.getDouble("totalHours");
                         tvHoursVolunteered.setText(hours != null ? String.valueOf(hours.intValue()) : "0");

@@ -2,11 +2,17 @@ package com.error404.communityvolunteerplatform.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +30,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 public class OrganizationDashboardActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private DrawerLayout drawerLayout;
+    private ActionBarDrawerToggle toggle;
     private TextView tvWelcomeMessage;
     private ImageView ivNotifications;
 
@@ -46,15 +53,17 @@ public class OrganizationDashboardActivity extends AppCompatActivity implements 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayShowTitleEnabled(false);
+            getSupportActionBar().setTitle("Community Volunteer Platform");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeButtonEnabled(true);
         }
 
         // 2. Setup Drawer and Sidebar (Hamburger Menu)
         drawerLayout = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(this);
 
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
+        toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
                 R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
@@ -85,22 +94,110 @@ public class OrganizationDashboardActivity extends AppCompatActivity implements 
         // 5. Fetch Data from Firebase
         fetchOrganizationName();
         loadDashboardStats();
+
+        // Handle back press to close drawer if open
+        OnBackPressedCallback callback = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
+
+        drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                callback.setEnabled(true);
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                callback.setEnabled(false);
+            }
+        });
     }
 
     private void fetchOrganizationName() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            db.collection("users").document(currentUser.getUid()).get()
+            String uid = currentUser.getUid();
+            db.collection("users").document(uid).get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
-                            String orgName = documentSnapshot.getString("name");
-                            if (orgName != null && !orgName.isEmpty()) {
-                                tvWelcomeMessage.setText("Welcome, " + orgName);
-                            } else {
-                                tvWelcomeMessage.setText("Welcome");
+                            Log.d("OrgDashboard", "User Doc: " + documentSnapshot.getData());
+                            String orgName = documentSnapshot.getString("orgName");
+                            if (orgName == null || orgName.isEmpty()) {
+                                orgName = documentSnapshot.getString("name");
                             }
+                            if (orgName == null || orgName.isEmpty()) {
+                                orgName = documentSnapshot.getString("organizationName");
+                            }
+                            
+                            String logoUrl = documentSnapshot.getString("logoUrl");
+
+                            if (orgName != null && !orgName.isEmpty()) {
+                                updateOrgUI(orgName, logoUrl);
+                            } else {
+                                fetchFromOrganisationsCollection(uid);
+                            }
+                        } else {
+                            fetchFromOrganisationsCollection(uid);
                         }
-                    }).addOnFailureListener(e -> tvWelcomeMessage.setText("Welcome"));
+                    }).addOnFailureListener(e -> fetchFromOrganisationsCollection(uid));
+        }
+    }
+
+    private void fetchFromOrganisationsCollection(String uid) {
+        db.collection("organisations").document(uid).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Log.d("OrgDashboard", "Org Doc: " + documentSnapshot.getData());
+                        String orgName = documentSnapshot.getString("orgName");
+                        if (orgName == null || orgName.isEmpty()) {
+                            orgName = documentSnapshot.getString("name");
+                        }
+                        String logoUrl = documentSnapshot.getString("logoUrl");
+                        updateOrgUI(orgName, logoUrl);
+                    } else {
+                        tvWelcomeMessage.setText("Welcome");
+                    }
+                })
+                .addOnFailureListener(e -> tvWelcomeMessage.setText("Welcome"));
+    }
+
+    private void updateOrgUI(String orgName, String logoUrl) {
+        if (orgName != null && !orgName.isEmpty()) {
+            tvWelcomeMessage.setText("Welcome, " + orgName);
+        } else {
+            tvWelcomeMessage.setText("Welcome");
+        }
+
+        NavigationView navigationView = findViewById(R.id.navigationView);
+        View headerView = navigationView.getHeaderView(0);
+        if (headerView == null) {
+            headerView = navigationView.inflateHeaderView(R.layout.nav_header);
+        }
+
+        TextView tvNavOrgName = headerView.findViewById(R.id.tvNavOrgName);
+        ImageView ivNavProfilePic = headerView.findViewById(R.id.ivNavProfilePic);
+
+        if (tvNavOrgName != null) {
+            tvNavOrgName.setText(orgName != null ? orgName : "Organization");
+        }
+
+        if (ivNavProfilePic != null) {
+            if (logoUrl != null && !logoUrl.isEmpty()) {
+                Glide.with(this).load(logoUrl).placeholder(R.drawable.ic_default_avatar).into(ivNavProfilePic);
+            } else {
+                ivNavProfilePic.setImageResource(R.drawable.ic_default_avatar);
+            }
+        }
+
+        if (headerView != null) {
+            headerView.setOnClickListener(v -> {
+                startActivity(new Intent(OrganizationDashboardActivity.this, OrganizationProfileActivity.class));
+                drawerLayout.closeDrawer(GravityCompat.START);
+            });
         }
     }
 
@@ -173,14 +270,5 @@ public class OrganizationDashboardActivity extends AppCompatActivity implements 
 
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
     }
 }

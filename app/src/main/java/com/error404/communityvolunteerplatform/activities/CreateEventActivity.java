@@ -31,7 +31,8 @@ import java.util.Locale;
 
 public class CreateEventActivity extends AppCompatActivity {
 
-    private TextInputEditText etEventName, etDescription, etEventLocation, etDate, etVolunteersNeeded;
+    private TextInputEditText etEventName, etDescription, etEventLocation, etDate, etVolunteersNeeded, etQualifications;
+    private com.google.android.material.textfield.TextInputLayout tilQualifications;
     private Spinner spinnerCategory;
     private MaterialCheckBox cbRequiresExperience, cbRequiresQualification;
     private MaterialButton btnCreateEvent, btnGenerateAi;
@@ -93,9 +94,32 @@ public class CreateEventActivity extends AppCompatActivity {
         etEventLocation = findViewById(R.id.etEventLocation);
         etDate = findViewById(R.id.etDate);
         etVolunteersNeeded = findViewById(R.id.etVolunteersNeeded);
+        etQualifications = findViewById(R.id.etQualifications);
+        tilQualifications = findViewById(R.id.tilQualifications);
         spinnerCategory = findViewById(R.id.spinnerCategory);
         cbRequiresExperience = findViewById(R.id.cbRequiresExperience);
         cbRequiresQualification = findViewById(R.id.cbRequiresQualification);
+        cbRequiresQualification.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            tilQualifications.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            if (!isChecked) {
+                etQualifications.setText("");
+                tilQualifications.setError(null);
+            }
+        });
+
+        etQualifications.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                tilQualifications.setError(null);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
         btnCreateEvent = findViewById(R.id.btnCreateEvent);
         btnGenerateAi = findViewById(R.id.btnGenerateAi);
     }
@@ -220,6 +244,10 @@ public class CreateEventActivity extends AppCompatActivity {
                             etVolunteersNeeded.setText(String.valueOf(existingOpportunity.getSlotsTotal()));
                             cbRequiresExperience.setChecked(existingOpportunity.isRequiresExperience());
                             cbRequiresQualification.setChecked(existingOpportunity.isRequiresQualification());
+                            if (existingOpportunity.isRequiresQualification()) {
+                                etQualifications.setText(existingOpportunity.getRequiredQualificationsText());
+                                tilQualifications.setVisibility(View.VISIBLE);
+                            }
                             
                             // Set spinner category
                             ArrayAdapter adapter = (ArrayAdapter) spinnerCategory.getAdapter();
@@ -267,6 +295,12 @@ public class CreateEventActivity extends AppCompatActivity {
             return;
         }
 
+        if (cbRequiresQualification.isChecked() && TextUtils.isEmpty(etQualifications.getText().toString().trim())) {
+            tilQualifications.setError(getString(R.string.error_qualifications_required));
+            Toast.makeText(this, R.string.error_qualifications_required, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         int slotsTotal = Integer.parseInt(slotsStr);
 
         if (isEditMode && existingOpportunity != null) {
@@ -281,6 +315,9 @@ public class CreateEventActivity extends AppCompatActivity {
         event.setEventDate(date);
         event.setRequiresExperience(cbRequiresExperience.isChecked());
         event.setRequiresQualification(cbRequiresQualification.isChecked());
+        if (cbRequiresQualification.isChecked()) {
+            event.setRequiredQualificationsText(etQualifications.getText().toString().trim());
+        }
 
         btnCreateEvent.setEnabled(false);
         Toast.makeText(this, "Creating event...", Toast.LENGTH_SHORT).show();
@@ -307,6 +344,11 @@ public class CreateEventActivity extends AppCompatActivity {
         existingOpportunity.setSlotsTotal(slotsTotal);
         existingOpportunity.setRequiresExperience(cbRequiresExperience.isChecked());
         existingOpportunity.setRequiresQualification(cbRequiresQualification.isChecked());
+        if (cbRequiresQualification.isChecked()) {
+            existingOpportunity.setRequiredQualificationsText(etQualifications.getText().toString().trim());
+        } else {
+            existingOpportunity.setRequiredQualificationsText(null);
+        }
         existingOpportunity.setUpdatedAt(com.google.firebase.Timestamp.now());
 
         btnCreateEvent.setEnabled(false);

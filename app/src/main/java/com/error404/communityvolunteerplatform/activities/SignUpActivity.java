@@ -1,5 +1,6 @@
 package com.error404.communityvolunteerplatform.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -108,10 +109,6 @@ public class SignUpActivity extends AppCompatActivity {
     //  OTP via Brevo email
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Generates an OTP and emails it to the address the user typed in.
-     * @param isOrg true = Organisation tab, false = Volunteer tab
-     */
     private void checkLocationPermissions() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
             startLocationDetection();
@@ -147,6 +144,10 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Generates an OTP and emails it to the address the user typed in.
+     * @param isOrg true = Organisation tab, false = Volunteer tab
+     */
     private void requestEmailOtp(boolean isOrg) {
         String email = isOrg
                 ? etOrgEmail.getText().toString().trim()

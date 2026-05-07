@@ -69,4 +69,6 @@
     <string name="event_canceled_success">Event canceled successfully</string>
     <string name="event_updated_success">Event Updated Successfully!</string>
     <string name="status_canceled">Canceled</string>
+    <string name="hint_required_qualifications">Enter required qualifications</string>
+    <string name="error_qualifications_required">Please enter the required qualifications.</string>
 </resources>

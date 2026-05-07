@@ -30,5 +30,9 @@
     <color name="chat_text_user">#FFFFFF</color>
     <color name="chat_text_bot">#212121</color>
 
+    <!-- UI Colors -->
+    <color name="primary_color">#673AB7</color>
+    <color name="error_red">#B00020</color>
+
 
 </resources>
