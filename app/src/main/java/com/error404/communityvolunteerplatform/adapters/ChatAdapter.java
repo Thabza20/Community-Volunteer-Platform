@@ -105,15 +105,10 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
                 holder.tvUserName.setText("User"); // Default while loading
                 holder.ivProfilePic.setImageResource(R.drawable.ic_default_avatar);
 
-                db.collection("users").document(finalOtherUserId).get().addOnSuccessListener(userDoc -> {
-                    User user = userDoc.toObject(User.class);
-                    if (user != null) {
-                        String displayName = user.getDisplayName();
-                        String picUrl = user.getProfilePicUrl();
-                        nameCache.put(finalOtherUserId, displayName);
-                        profilePicCache.put(finalOtherUserId, picUrl);
-                        notifyItemChanged(holder.getAdapterPosition());
-                    }
+                UserHelper.fetchDisplayName(finalOtherUserId, (name, picUrl) -> {
+                    nameCache.put(finalOtherUserId, name);
+                    if (picUrl != null) profilePicCache.put(finalOtherUserId, picUrl);
+                    notifyItemChanged(holder.getAdapterPosition());
                 });
             }
         }

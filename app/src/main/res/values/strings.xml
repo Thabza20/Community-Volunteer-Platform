@@ -63,4 +63,10 @@
     <string name="ai_generate_btn">Generate with AI ✦</string>
     <string name="ai_generating">Generating...</string>
     <string name="ai_description_hint">AI will draft a description based on your title and category</string>
+    <string name="update_event">Update Event</string>
+    <string name="edit_event">Edit Event</string>
+    <string name="cancel_event">Cancel Event</string>
+    <string name="event_canceled_success">Event canceled successfully</string>
+    <string name="event_updated_success">Event Updated Successfully!</string>
+    <string name="status_canceled">Canceled</string>
 </resources>

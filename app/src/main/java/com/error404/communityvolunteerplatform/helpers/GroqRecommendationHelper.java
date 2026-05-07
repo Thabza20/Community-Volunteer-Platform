@@ -172,6 +172,7 @@ public class GroqRecommendationHelper {
                                 messages.put(new JSONObject().put("role", "user").put("content", prompt));
                                 jsonBody.put("messages", messages);
                                 jsonBody.put("temperature", 0.2);
+                                jsonBody.put("max_tokens", 180);
 
                                 OkHttpClient client = new OkHttpClient();
                                 RequestBody body = RequestBody.create(jsonBody.toString(), MediaType.parse("application/json; charset=utf-8"));
@@ -294,18 +295,23 @@ public class GroqRecommendationHelper {
                                             String categoriesJoined = pastCategoriesList.stream().distinct().collect(Collectors.joining(", "));
                                             final String pastCategories = categoriesJoined.isEmpty() ? "None yet" : categoriesJoined;
 
-                                            StringBuilder oppsBuilder = new StringBuilder();
-                                            int index = 1;
+                                StringBuilder oppsBuilder = new StringBuilder();
                                             int count = 0;
                                             for (Opportunity opp : allOpportunities) {
-                                                if (count >= 20) break; // Token limit protection
-                                                oppsBuilder.append(index).append(". ID: ").append(opp.getOpportunityId())
-                                                        .append("\nTitle: ").append(opp.getTitle())
-                                                        .append("\nDescription: ").append(opp.getOpportunityDescription())
-                                                        .append("\nCategory: ").append(opp.getCategory())
-                                                        .append("\nLocation: ").append(opp.getLocation())
-                                                        .append("\n\n");
-                                                index++;
+                                                if (count >= 20) break;
+                                                // Skip test data and incomplete entries
+                                                if (opp.getTitle() == null || opp.getTitle().trim().length() < 3) continue;
+                                                if (opp.getOpportunityDescription() == null ||
+                                                        opp.getOpportunityDescription().trim().length() < 10) continue;
+
+                                                String shortDesc = opp.getOpportunityDescription()
+                                                        .substring(0, Math.min(60, opp.getOpportunityDescription().length()));
+                                                oppsBuilder.append(opp.getOpportunityId())
+                                                        .append(" | ").append(opp.getTitle())
+                                                        .append(" | ").append(opp.getCategory() != null ? opp.getCategory() : "General")
+                                                        .append(" | ").append(opp.getLocation() != null ? opp.getLocation() : "Unknown")
+                                                        .append(" | ").append(shortDesc)
+                                                        .append("\n");
                                                 count++;
                                             }
 
@@ -355,19 +361,19 @@ public class GroqRecommendationHelper {
     private static void callGroqApi(String fullName, List<String> skills, String location, double totalHours, int projectsCompleted, int badgeCount, String pastCategories, String opportunitiesList, List<Opportunity> allOpportunities, OnRecommendationsListener listener) {
         new Thread(() -> {
             try {
-                String prompt = "You are a volunteer matching AI for South Africa. Match the volunteer to opportunities.\n" +
-                        "CRITERIA (Weight): Skills(4), Location(3), Category Interest(2), Experience(1).\n\n" +
+                String skillsStr = (skills != null && !skills.isEmpty()) ? String.join(", ", skills) : "none listed";
+                String prompt = "You are a volunteer matching assistant. Pick the 3 BEST matching opportunities for this volunteer from the list below.\n\n" +
                         "VOLUNTEER:\n" +
-                        "Name: " + fullName + "\n" +
-                        "Skills: " + (skills != null && !skills.isEmpty() ? String.join(", ", skills) : "None listed") + "\n" +
-                        "Location: " + location + "\n" +
-                        "Total Hours: " + totalHours + "\n" +
-                        "Events: " + projectsCompleted + "\n" +
-                        "Badges: " + badgeCount + "\n" +
-                        "Past Interests: " + pastCategories + "\n\n" +
-                        "OPPORTUNITIES:\n" +
+                        "- Skills: " + skillsStr + "\n" +
+                        "- Location: " + location + "\n" +
+                        "- Experience: " + (int)totalHours + " hours, " + projectsCompleted + " events\n" +
+                        "- Previously interested in: " + pastCategories + "\n\n" +
+                        "MATCH PRIORITY (in order): 1) skill overlap 2) same city/province 3) category interest 4) open slots\n\n" +
+                        "OPPORTUNITIES (ID | Title | Category | Location | Description):\n" +
                         opportunitiesList + "\n" +
-                        "OUTPUT: Return ONLY a JSON array of max 3 objects. Each: {\"id\":\"...\", \"reason\":\"1 sentence match reason\"}. No markdown.";
+                        "Return ONLY a valid JSON array of exactly 3 objects (or fewer if less than 3 exist):\n" +
+                        "[{\"id\":\"...\",\"reason\":\"why this matches in 8 words or less\"}]\n" +
+                        "No markdown, no extra text, just the JSON array.";
 
                 JSONObject jsonBody = new JSONObject();
                 jsonBody.put("model", MODEL_NAME);
@@ -375,6 +381,7 @@ public class GroqRecommendationHelper {
                 messages.put(new JSONObject().put("role", "user").put("content", prompt));
                 jsonBody.put("messages", messages);
                 jsonBody.put("temperature", 0.1);
+                jsonBody.put("max_tokens", 200);
 
                 OkHttpClient client = new OkHttpClient.Builder()
                         .connectTimeout(30, TimeUnit.SECONDS)
@@ -423,6 +430,24 @@ public class GroqRecommendationHelper {
                         }
                     }
 
+                    if (recommendedOpps.isEmpty() && !allOpportunities.isEmpty()) {
+                        // Score each opportunity locally based on volunteer data
+                        List<Opportunity> scored = new ArrayList<>(allOpportunities);
+                        scored.sort((a, b) -> {
+                            int scoreA = localScore(a, skills, location);
+                            int scoreB = localScore(b, skills, location);
+                            return Integer.compare(scoreB, scoreA); // descending
+                        });
+                        int fallbackCount = Math.min(3, scored.size());
+                        for (int i = 0; i < fallbackCount; i++) {
+                            Opportunity opp = scored.get(i);
+                            // Skip obviously bad test data
+                            if (opp.getTitle() == null || opp.getTitle().length() < 3) continue;
+                            recommendedOpps.add(opp);
+                            reasons.add("Suggested based on your profile");
+                        }
+                    }
+
                     cachedRecommendations = recommendedOpps;
                     cachedReasons = reasons;
                     cacheTimestamp = System.currentTimeMillis();
@@ -460,8 +485,13 @@ public class GroqRecommendationHelper {
 
                     new Thread(() -> {
                         try {
-                            String prompt = "Calculate community impact for: Hours:" + totalHours + ", Events:" + projectsCompleted + ", Skills:" + (skills != null ? String.join(",", skills) : "None") + ", Badges:" + badgeCount + ".\n" +
-                                    "Return ONLY JSON: {\"summary\": \"2 sentence impact summary.\", \"score\": 0-100}. No markdown.";
+                            String prompt = "You are calculating a volunteer's community impact score for a South African volunteer platform.\n" +
+                                    "Data: Hours=" + (int)totalHours + ", Events=" + projectsCompleted +
+                                    ", Skills=" + (skills != null ? String.join(",", skills) : "None") +
+                                    ", Badges=" + badgeCount + "\n" +
+                                    "Rules: New volunteers (0 hours) start at 15-25. Each 5 hours adds ~8 points. Each event adds ~5 points. Each badge adds ~3 points. Max 100.\n" +
+                                    "Write 2 sentences: acknowledge their current level positively, then motivate next step.\n" +
+                                    "Return ONLY JSON (no markdown): {\"summary\":\"2 sentences here.\",\"score\":0-100}";
 
                             JSONObject jsonBody = new JSONObject();
                             jsonBody.put("model", MODEL_NAME);
@@ -469,6 +499,7 @@ public class GroqRecommendationHelper {
                             messages.put(new JSONObject().put("role", "user").put("content", prompt));
                             jsonBody.put("messages", messages);
                             jsonBody.put("temperature", 0.3);
+                            jsonBody.put("max_tokens", 150);
 
                             OkHttpClient client = new OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS).build();
                             RequestBody body = RequestBody.create(jsonBody.toString(), MediaType.parse("application/json; charset=utf-8"));
@@ -550,6 +581,7 @@ public class GroqRecommendationHelper {
                     messages.put(new JSONObject().put("role", "user").put("content", prompt));
                     jsonBody.put("messages", messages);
                     jsonBody.put("temperature", 0.7);
+                    jsonBody.put("max_tokens", 250);
 
                     OkHttpClient client = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build();
                     RequestBody body = RequestBody.create(jsonBody.toString(), MediaType.parse("application/json; charset=utf-8"));
@@ -589,7 +621,7 @@ public class GroqRecommendationHelper {
         db.collection("volunteers").document(volunteerId).get().addOnSuccessListener(doc -> {
             String volunteerSummary = "Name: " + doc.getString("fullName") +
                     ", Skills: " + (doc.get("skills") != null ? String.join(", ", (List<String>) doc.get("skills")) : "None") +
-                    ", Hours: " + doc.getDouble("totalHours") +
+                    ", Hours: " + (int) doc.getDouble("totalHours").doubleValue() +
                     ", Events: " + doc.getLong("projectsCompleted");
 
             new Thread(() -> {
@@ -597,11 +629,15 @@ public class GroqRecommendationHelper {
                     JSONObject jsonBody = new JSONObject();
                     jsonBody.put("model", MODEL_NAME);
                     jsonBody.put("temperature", 0.7);
+                    jsonBody.put("max_tokens", 120);
 
                     JSONArray messages = new JSONArray();
 
                     // System message
-                    String systemPrompt = "You are a friendly and helpful volunteer assistant for a South African community volunteer platform. You help volunteers find opportunities, understand the app, and track their progress. Keep all responses under 100 words and conversational. Active opportunities available: " + opportunitiesContext + ". Volunteer profile: " + volunteerSummary + ".";
+                    String trimmedContext = opportunitiesContext.length() > 300
+                            ? opportunitiesContext.substring(0, 300) + "..."
+                            : opportunitiesContext;
+                    String systemPrompt = "You are a friendly and helpful volunteer assistant for a South African community volunteer platform. You help volunteers find opportunities, understand the app, and track their progress. Keep all responses under 100 words and conversational. Active opportunities available: " + trimmedContext + ". Volunteer profile: " + volunteerSummary + ".";
                     messages.put(new JSONObject().put("role", "system").put("content", systemPrompt));
 
                     // History
@@ -645,6 +681,34 @@ public class GroqRecommendationHelper {
                 }
             }).start();
         }).addOnFailureListener(e -> listener.onError(e.getMessage()));
+    }
+
+    private static int localScore(Opportunity opp, List<String> skills, String location) {
+        int score = 0;
+        // Location match
+        if (location != null && opp.getLocation() != null) {
+            String city = location.split(",")[0].trim().toLowerCase();
+            if (opp.getLocation().toLowerCase().contains(city)) score += 3;
+        }
+        // Skill keyword match in title or description
+        if (skills != null && opp.getTitle() != null) {
+            String titleLower = opp.getTitle().toLowerCase();
+            String descLower = opp.getOpportunityDescription() != null
+                    ? opp.getOpportunityDescription().toLowerCase() : "";
+            for (String skill : skills) {
+                if (titleLower.contains(skill.toLowerCase()) ||
+                        descLower.contains(skill.toLowerCase())) {
+                    score += 2;
+                }
+            }
+        }
+        // Prefer opportunities with slots available
+        if (opp.getSlotsTotal() > opp.getSlotsFilled()) score += 1;
+        // Penalise obvious test data
+        if (opp.getTitle() != null && opp.getTitle().length() < 4) score -= 10;
+        if (opp.getOpportunityDescription() != null &&
+                opp.getOpportunityDescription().length() < 10) score -= 5;
+        return score;
     }
 
     private static void notifySuccess(OnRecommendationsListener listener, List<Opportunity> opportunities, List<String> reasons) {

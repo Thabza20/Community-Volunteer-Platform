@@ -25,6 +25,8 @@ public class OpportunityManagementAdapter extends RecyclerView.Adapter<Opportuni
 
     public interface OnOpportunityClickListener {
         void onOpportunityClick(Opportunity opportunity);
+        void onEditClick(Opportunity opportunity);
+        void onCancelClick(Opportunity opportunity);
     }
 
     public OpportunityManagementAdapter(List<Opportunity> opportunities, Map<String, Integer> applicantCounts, OnOpportunityClickListener listener) {
@@ -67,6 +69,18 @@ public class OpportunityManagementAdapter extends RecyclerView.Adapter<Opportuni
         }
 
         holder.itemView.setOnClickListener(v -> listener.onOpportunityClick(opportunity));
+        holder.btnEdit.setOnClickListener(v -> listener.onEditClick(opportunity));
+        holder.btnCancel.setOnClickListener(v -> listener.onCancelClick(opportunity));
+
+        if (Opportunity.STATUS_CANCELED.equals(opportunity.getStatus())) {
+            holder.btnCancel.setEnabled(false);
+            holder.btnCancel.setText("Canceled");
+            holder.btnEdit.setEnabled(false);
+        } else {
+            holder.btnCancel.setEnabled(true);
+            holder.btnCancel.setText("Cancel");
+            holder.btnEdit.setEnabled(true);
+        }
     }
 
     @Override
@@ -82,6 +96,7 @@ public class OpportunityManagementAdapter extends RecyclerView.Adapter<Opportuni
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvDate, tvApplicants, tvNewBadge;
+        android.widget.Button btnEdit, btnCancel;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -89,6 +104,8 @@ public class OpportunityManagementAdapter extends RecyclerView.Adapter<Opportuni
             tvDate = itemView.findViewById(R.id.tvDate);
             tvApplicants = itemView.findViewById(R.id.tvApplicants);
             tvNewBadge = itemView.findViewById(R.id.tvNewBadge);
+            btnEdit = itemView.findViewById(R.id.btnEdit);
+            btnCancel = itemView.findViewById(R.id.btnCancel);
         }
     }
 }

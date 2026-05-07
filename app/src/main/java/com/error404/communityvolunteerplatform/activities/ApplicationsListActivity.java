@@ -173,6 +173,7 @@ public class ApplicationsListActivity extends AppCompatActivity implements Appli
             case 1: statusFilter = "pending"; break;
             case 2: statusFilter = "approved"; break;
             case 3: statusFilter = "rejected"; break;
+            case 4: statusFilter = "canceled"; break;
         }
 
         if (statusFilter.isEmpty()) {

@@ -82,6 +82,11 @@ public class MessagesActivity extends AppCompatActivity {
         }
 
         btnSend.setOnClickListener(v -> sendMessage());
+
+        // Refresh details on start to make sure we didn't miss name update
+        if (otherUserId != null) {
+            fetchOtherUserDetails();
+        }
     }
 
     private void startChatSession() {
@@ -110,22 +115,29 @@ public class MessagesActivity extends AppCompatActivity {
     }
 
     private void findOrCreateChat() {
-        // Query for existing chat containing BOTH users in participants array
-        db.collection("chats")
-            .whereArrayContains("participants", currentUserId)
-            .get()
-            .addOnSuccessListener(snapshots -> {
-                for (DocumentSnapshot doc : snapshots.getDocuments()) {
-                    List<String> participants = (List<String>) doc.get("participants");
-                    if (participants != null && participants.contains(otherUserId)) {
-                        // Found existing chat — use it regardless of how it was created
-                        chatId = doc.getId();
-                        startChatSession();
-                        return;
-                    }
+        // Create a deterministic chatId from both userIds sorted alphabetically
+        // This guarantees both users always reference the same chat document
+        String deterministicChatId = currentUserId.compareTo(otherUserId) < 0
+            ? currentUserId + "_" + otherUserId
+            : otherUserId + "_" + currentUserId;
+
+        db.collection("chats").document(deterministicChatId).get()
+            .addOnSuccessListener(doc -> {
+                chatId = deterministicChatId;
+                if (!doc.exists()) {
+                    // Create the chat document with the deterministic ID
+                    List<String> participants = Arrays.asList(currentUserId, otherUserId);
+                    Map<String, Object> chat = new HashMap<>();
+                    chat.put("participants", participants);
+                    chat.put("lastMessage", "");
+                    chat.put("lastMessageAt", Timestamp.now());
+                    chat.put("unreadCount_" + currentUserId, 0);
+                    chat.put("unreadCount_" + otherUserId, 0);
+                    db.collection("chats").document(deterministicChatId).set(chat)
+                        .addOnSuccessListener(unused -> startChatSession());
+                } else {
+                    startChatSession();
                 }
-                // No existing chat found — create new one
-                createNewChat();
             })
             .addOnFailureListener(e -> {
                 Toast.makeText(this, "Failed to open chat", Toast.LENGTH_SHORT).show();
@@ -133,28 +145,11 @@ public class MessagesActivity extends AppCompatActivity {
             });
     }
 
-    private void createNewChat() {
-        List<String> participants = Arrays.asList(currentUserId, otherUserId);
-        Map<String, Object> chat = new HashMap<>();
-        chat.put("participants", participants);
-        chat.put("lastMessage", "");
-        chat.put("lastMessageAt", Timestamp.now());
-        chat.put("unreadCount_" + currentUserId, 0);
-        chat.put("unreadCount_" + otherUserId, 0);
-        db.collection("chats").add(chat)
-            .addOnSuccessListener(docRef -> {
-                chatId = docRef.getId();
-                startChatSession();
-            })
-            .addOnFailureListener(e -> {
-                Toast.makeText(this, "Failed to create chat", Toast.LENGTH_SHORT).show();
-                finish();
-            });
-    }
-
     private void fetchOtherUserDetails() {
         UserHelper.fetchDisplayName(otherUserId, (name, pic) -> {
-            if (getSupportActionBar() != null) getSupportActionBar().setTitle(name);
+            if (!isDestroyed() && !isFinishing() && getSupportActionBar() != null) {
+                getSupportActionBar().setTitle(name);
+            }
         });
     }
 
@@ -166,6 +161,7 @@ public class MessagesActivity extends AppCompatActivity {
     private void listenForMessages() {
         messagesListener = db.collection("chats").document(chatId)
                 .collection("messages")
+                .orderBy("sentAt", Query.Direction.ASCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null || value == null) return;
                     messageList.clear();
@@ -178,11 +174,6 @@ public class MessagesActivity extends AppCompatActivity {
                             doc.getReference().update("read", true);
                         }
                     }
-                    // Sort locally by sentAt
-                    messageList.sort((m1, m2) -> {
-                        if (m1.getSentAt() == null || m2.getSentAt() == null) return 0;
-                        return m1.getSentAt().compareTo(m2.getSentAt());
-                    });
                     adapter.notifyDataSetChanged();
                     if (!messageList.isEmpty()) {
                         rvMessages.scrollToPosition(messageList.size() - 1);

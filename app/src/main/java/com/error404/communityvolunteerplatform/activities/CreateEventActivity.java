@@ -42,6 +42,11 @@ public class CreateEventActivity extends AppCompatActivity {
     private String orgLocation;
     private String orgDescription;
 
+    private boolean isEditMode = false;
+    private String opportunityId;
+    private Opportunity existingOpportunity;
+    private String originalLocation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +64,17 @@ public class CreateEventActivity extends AppCompatActivity {
         fetchOrgName();
         setupCategorySpinner();
         setupAiDescriptionLogic();
+
+        isEditMode = getIntent().getBooleanExtra("EDIT_MODE", false);
+        opportunityId = getIntent().getStringExtra("OPPORTUNITY_ID");
+
+        if (isEditMode && opportunityId != null) {
+            loadOpportunityData();
+            btnCreateEvent.setText(R.string.update_event);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle(R.string.edit_event);
+            }
+        }
 
         etDate.setOnClickListener(v -> showDatePicker());
         btnCreateEvent.setOnClickListener(v -> saveEvent());
@@ -190,6 +206,30 @@ public class CreateEventActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
+    private void loadOpportunityData() {
+        db.collection("opportunities").document(opportunityId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        existingOpportunity = documentSnapshot.toObject(Opportunity.class);
+                        if (existingOpportunity != null) {
+                            etEventName.setText(existingOpportunity.getTitle());
+                            etDescription.setText(existingOpportunity.getOpportunityDescription());
+                            etEventLocation.setText(existingOpportunity.getLocation());
+                            originalLocation = existingOpportunity.getLocation();
+                            etDate.setText(String.valueOf(existingOpportunity.getEventDate()));
+                            etVolunteersNeeded.setText(String.valueOf(existingOpportunity.getSlotsTotal()));
+                            cbRequiresExperience.setChecked(existingOpportunity.isRequiresExperience());
+                            cbRequiresQualification.setChecked(existingOpportunity.isRequiresQualification());
+                            
+                            // Set spinner category
+                            ArrayAdapter adapter = (ArrayAdapter) spinnerCategory.getAdapter();
+                            int position = adapter.getPosition(existingOpportunity.getCategory());
+                            spinnerCategory.setSelection(position);
+                        }
+                    }
+                });
+    }
+
     private void saveEvent() {
         if (etEventName.getText() == null || etDescription.getText() == null ||
             etEventLocation.getText() == null || etDate.getText() == null || etVolunteersNeeded.getText() == null) {
@@ -229,6 +269,14 @@ public class CreateEventActivity extends AppCompatActivity {
 
         int slotsTotal = Integer.parseInt(slotsStr);
 
+        if (isEditMode && existingOpportunity != null) {
+            updateEvent(title, description, eventLocation, date, category, slotsTotal);
+        } else {
+            createEvent(title, description, eventLocation, date, category, slotsTotal);
+        }
+    }
+
+    private void createEvent(String title, String description, String eventLocation, String date, String category, int slotsTotal) {
         Opportunity event = new Opportunity(orgId, orgName, title, eventLocation, orgDescription, description, category, slotsTotal);
         event.setEventDate(date);
         event.setRequiresExperience(cbRequiresExperience.isChecked());
@@ -246,5 +294,68 @@ public class CreateEventActivity extends AppCompatActivity {
                     btnCreateEvent.setEnabled(true);
                     Toast.makeText(CreateEventActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void updateEvent(String title, String description, String eventLocation, String date, String category, int slotsTotal) {
+        boolean locationChanged = !eventLocation.equals(originalLocation);
+
+        existingOpportunity.setTitle(title);
+        existingOpportunity.setOpportunityDescription(description);
+        existingOpportunity.setLocation(eventLocation);
+        existingOpportunity.setEventDate(date);
+        existingOpportunity.setCategory(category);
+        existingOpportunity.setSlotsTotal(slotsTotal);
+        existingOpportunity.setRequiresExperience(cbRequiresExperience.isChecked());
+        existingOpportunity.setRequiresQualification(cbRequiresQualification.isChecked());
+        existingOpportunity.setUpdatedAt(com.google.firebase.Timestamp.now());
+
+        btnCreateEvent.setEnabled(false);
+        
+        com.google.firebase.firestore.WriteBatch batch = db.batch();
+        batch.set(db.collection("opportunities").document(opportunityId), existingOpportunity);
+
+        if (locationChanged) {
+            notifyApplicantsOfLocationChange(batch, title, eventLocation);
+        } else {
+            commitBatch(batch);
+        }
+    }
+
+    private void notifyApplicantsOfLocationChange(com.google.firebase.firestore.WriteBatch batch, String title, String newLocation) {
+        db.collection("applications")
+                .whereEqualTo("opportunityId", opportunityId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        String volunteerId = doc.getString("volunteerId");
+                        if (volunteerId != null) {
+                            java.util.Map<String, Object> notification = new java.util.HashMap<>();
+                            notification.put("userId", volunteerId);
+                            notification.put("title", "Location Change: " + title);
+                            notification.put("message", "The location for '" + title + "' has changed to: " + newLocation + ". You can withdraw your application if this no longer suits you.");
+                            notification.put("timestamp", com.google.firebase.Timestamp.now());
+                            notification.put("read", false);
+                            notification.put("type", "location_change");
+                            notification.put("opportunityId", opportunityId);
+
+                            batch.set(db.collection("notifications").document(), notification);
+                        }
+                    }
+                    commitBatch(batch);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error notifying applicants: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    commitBatch(batch);
+                });
+    }
+
+    private void commitBatch(com.google.firebase.firestore.WriteBatch batch) {
+        batch.commit().addOnSuccessListener(aVoid -> {
+            Toast.makeText(CreateEventActivity.this, R.string.event_updated_success, Toast.LENGTH_SHORT).show();
+            finish();
+        }).addOnFailureListener(e -> {
+            btnCreateEvent.setEnabled(true);
+            Toast.makeText(CreateEventActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
     }
 }

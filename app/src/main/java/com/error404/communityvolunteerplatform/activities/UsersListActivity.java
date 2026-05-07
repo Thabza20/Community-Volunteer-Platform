@@ -66,46 +66,78 @@ public class UsersListActivity extends AppCompatActivity {
 
     private void loadUsers() {
         if (currentUserId == null) return;
-        long now = System.currentTimeMillis();
-        if (cachedUsers != null && (now - userCacheTimestamp) < USER_CACHE_MS) {
-            userList.clear();
-            userList.addAll(cachedUsers);
-            adapter.notifyDataSetChanged();
-            progressBar.setVisibility(View.GONE);
-            return;
-        }
         progressBar.setVisibility(View.VISIBLE);
 
+        // Fetch from multiple collections to show everyone
         db.collection("users").get().addOnCompleteListener(task -> {
-            progressBar.setVisibility(View.GONE);
             if (task.isSuccessful() && task.getResult() != null) {
-                List<User> freshList = new ArrayList<>();
+                userList.clear();
                 for (DocumentSnapshot doc : task.getResult()) {
                     User user = doc.toObject(User.class);
                     if (user != null) {
                         user.setUserId(doc.getId());
                         if (!user.getUserId().equals(currentUserId)) {
-                            freshList.add(user);
+                            userList.add(user);
                         }
                     }
                 }
-                cachedUsers = freshList;
-                userCacheTimestamp = System.currentTimeMillis();
-                userList.clear();
-                userList.addAll(freshList);
-                adapter.notifyDataSetChanged();
+                
+                // Also check volunteers for those not in 'users'
+                db.collection("volunteers").get().addOnSuccessListener(vDocs -> {
+                    for (DocumentSnapshot doc : vDocs) {
+                        if (!isIdInList(doc.getId()) && !doc.getId().equals(currentUserId)) {
+                            User u = new User();
+                            u.setUserId(doc.getId());
+                            u.setFirstName(doc.getString("firstName"));
+                            u.setLastName(doc.getString("lastName"));
+                            u.setRole("volunteer");
+                            u.setProfilePicUrl(doc.getString("profilePicUrl"));
+                            userList.add(u);
+                        }
+                    }
+                    
+                    // Also check organisations
+                    db.collection("organisations").get().addOnSuccessListener(oDocs -> {
+                        for (DocumentSnapshot doc : oDocs) {
+                            if (!isIdInList(doc.getId()) && !doc.getId().equals(currentUserId)) {
+                                User u = new User();
+                                u.setUserId(doc.getId());
+                                u.setOrgName(doc.getString("orgName"));
+                                u.setRole("organisation");
+                                String pic = doc.getString("logoUrl");
+                                if (pic == null) pic = doc.getString("profilePicUrl");
+                                u.setProfilePicUrl(pic);
+                                userList.add(u);
+                            }
+                        }
+                        progressBar.setVisibility(View.GONE);
+                        adapter.notifyDataSetChanged();
+                    });
+                });
             } else {
+                progressBar.setVisibility(View.GONE);
                 Toast.makeText(this, "Error loading users", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    private boolean isIdInList(String id) {
+        for (User u : userList) {
+            if (u.getUserId().equals(id)) return true;
+        }
+        return false;
+    }
+
     private void openChatWithUser(User otherUser) {
         String otherUserId = otherUser.getUserId();
 
+        String deterministicChatId = currentUserId.compareTo(otherUserId) < 0
+                ? currentUserId + "_" + otherUserId
+                : otherUserId + "_" + currentUserId;
+
         Intent intent = new Intent(this, MessagesActivity.class);
+        intent.putExtra("chatId", deterministicChatId);
         intent.putExtra("otherUserId", otherUserId);
-        // Do NOT put chatId — MessagesActivity will find or create it
         startActivity(intent);
     }
 }

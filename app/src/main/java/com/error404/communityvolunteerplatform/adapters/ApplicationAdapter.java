@@ -81,6 +81,7 @@ public class ApplicationAdapter extends RecyclerView.Adapter<ApplicationAdapter.
             case "approved": chipColor = Color.parseColor("#10B981"); break;
             case "rejected": chipColor = Color.parseColor("#EF4444"); break;
             case "withdrawn": chipColor = Color.parseColor("#9CA3AF"); break;
+            case "canceled": chipColor = Color.parseColor("#6B7280"); break;
             case "pending":
             default: chipColor = Color.parseColor("#F59E0B"); break;
         }

@@ -23,6 +23,8 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tvLoginHeading, tvErrorMessage, tvGoToSignup;
     private EditText etLoginEmail, etLoginPassword;
     private Button btnLogin;
+    private android.widget.CheckBox cbRememberMe;
+    private android.content.SharedPreferences sharedPreferences;
 
     // Firebase
     private FirebaseAuth mAuth;
@@ -32,6 +34,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        sharedPreferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
 
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
@@ -45,6 +49,17 @@ public class LoginActivity extends AppCompatActivity {
         etLoginEmail = findViewById(R.id.etLoginEmail);
         etLoginPassword = findViewById(R.id.etLoginPassword);
         btnLogin = findViewById(R.id.btnLogin);
+        cbRememberMe = findViewById(R.id.cbRememberMe);
+
+        // Check for remembered credentials
+        boolean isRemembered = sharedPreferences.getBoolean("rememberMe", false);
+        if (isRemembered) {
+            String savedEmail = sharedPreferences.getString("email", "");
+            String savedPassword = sharedPreferences.getString("password", "");
+            etLoginEmail.setText(savedEmail);
+            etLoginPassword.setText(savedPassword);
+            cbRememberMe.setVisibility(View.GONE);
+        }
 
         // Setup Tab switching
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -91,6 +106,13 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
+                        if (cbRememberMe.isChecked()) {
+                            sharedPreferences.edit()
+                                    .putBoolean("rememberMe", true)
+                                    .putString("email", email)
+                                    .putString("password", password)
+                                    .apply();
+                        }
                         String uid = mAuth.getCurrentUser().getUid();
                         checkUserRoleAndNavigate(uid);
                     } else {

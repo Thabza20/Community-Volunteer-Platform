@@ -40,12 +40,13 @@ public class SignUpActivity extends AppCompatActivity {
 
     private TabLayout tabLayout;
     private LinearLayout layoutOrgForm, layoutVolForm;
-    private CheckBox cbPopia;
+    private CheckBox cbPopia, cbRememberMe;
     private TextView tvErrorMessage, tvSignupHeading;
     private Button btnSignup;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private android.content.SharedPreferences sharedPreferences;
 
     // ── Brevo OTP helper (one instance for the session) ──────────
 
@@ -80,9 +81,15 @@ public class SignUpActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db    = FirebaseFirestore.getInstance();
         locationHelper = new LocationHelper(this);
+        sharedPreferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
 
         initViews();
         setupTabLayout();
+
+        if (sharedPreferences.getBoolean("rememberMe", false)) {
+            cbRememberMe.setVisibility(View.GONE);
+        }
+
         setupPopiaLink(findViewById(R.id.tvPopiaLink));
         findViewById(R.id.tvGoToLogin).setOnClickListener(v -> finish());
 
@@ -260,6 +267,13 @@ public class SignUpActivity extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
+                        if (cbRememberMe.isChecked()) {
+                            sharedPreferences.edit()
+                                    .putBoolean("rememberMe", true)
+                                    .putString("email", email)
+                                    .putString("password", password)
+                                    .apply();
+                        }
                         String uid = mAuth.getCurrentUser().getUid();
                         saveUserDataToFirestore(uid, isOrg);
                     } else {
@@ -317,6 +331,9 @@ public class SignUpActivity extends AppCompatActivity {
         db.collection("organisations").document(uid).set(org)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, R.string.org_reg_success, Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(SignUpActivity.this, OrganizationDashboardActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
                     finish();
                 })
                 .addOnFailureListener(e -> {
@@ -345,6 +362,9 @@ public class SignUpActivity extends AppCompatActivity {
         db.collection("volunteers").document(uid).set(vol)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, R.string.vol_reg_success, Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(SignUpActivity.this, VolunteerDashboardActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
                     finish();
                 })
                 .addOnFailureListener(e -> {
@@ -362,6 +382,7 @@ public class SignUpActivity extends AppCompatActivity {
         layoutOrgForm   = findViewById(R.id.layoutOrgForm);
         layoutVolForm   = findViewById(R.id.layoutVolForm);
         cbPopia         = findViewById(R.id.cbPopia);
+        cbRememberMe    = findViewById(R.id.cbRememberMe);
         tvErrorMessage  = findViewById(R.id.tvErrorMessage);
         tvSignupHeading = findViewById(R.id.tvSignupHeading);
         btnSignup       = findViewById(R.id.btnSignup);
