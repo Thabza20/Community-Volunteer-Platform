@@ -97,22 +97,30 @@ public class VolunteerDashboardActivity extends AppCompatActivity
             }
         });
 
-        loadVolunteerData();
-        loadApplicationStats();
-        loadAiRecommendation();
+        getWindow().getDecorView().post(() -> {
+            loadVolunteerData();
+            loadApplicationStats();
+        });
+
+        // Delay AI recommendation by 2 seconds to avoid startup congestion
+        new android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(this::loadAiRecommendation, 2000);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        loadVolunteerData();
-        loadApplicationStats();
         listenToNotifications();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
         if (notificationListener != null) {
             notificationListener.remove();
         }

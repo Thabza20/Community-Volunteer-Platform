@@ -92,8 +92,11 @@ public class OrganizationDashboardActivity extends AppCompatActivity implements 
         });
 
         // 5. Fetch Data from Firebase
-        fetchOrganizationName();
-        loadDashboardStats();
+        getWindow().getDecorView().post(() -> {
+            fetchOrganizationName();
+        });
+        new android.os.Handler(android.os.Looper.getMainLooper())
+                .postDelayed(this::loadDashboardStats, 1000);
 
         // Handle back press to close drawer if open
         OnBackPressedCallback callback = new OnBackPressedCallback(false) {
