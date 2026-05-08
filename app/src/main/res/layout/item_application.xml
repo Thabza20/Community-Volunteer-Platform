@@ -85,6 +85,20 @@
                 android:textSize="12sp"
                 android:visibility="gone"
                 app:strokeColor="#EF4444" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnShowQr"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:text="Show QR Code"
+                android:textSize="12sp"
+                android:visibility="gone"
+                app:backgroundTint="#10B981" />
         </RelativeLayout>
 
     </LinearLayout>

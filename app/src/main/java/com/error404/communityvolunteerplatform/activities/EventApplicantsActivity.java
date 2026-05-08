@@ -128,6 +128,10 @@ public class EventApplicantsActivity extends AppCompatActivity {
                     );
 
                     if ("approved".equals(newStatus)) {
+                        String qrToken = "CVP::" + opportunityId + "::" + application.getVolunteerId() + "::" + application.getApplicationId();
+                        db.collection("applications").document(application.getApplicationId())
+                                .update("qrToken", qrToken);
+
                         // Increment slotsFilled in the opportunity document
                         db.collection("opportunities").document(opportunityId)
                                 .update("slotsFilled", FieldValue.increment(1))

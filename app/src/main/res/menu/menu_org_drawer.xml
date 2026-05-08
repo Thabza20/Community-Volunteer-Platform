@@ -8,6 +8,9 @@
         android:id="@+id/nav_manage_opps"
         android:title="Manage Opportunities" />
     <item
+        android:id="@+id/nav_give_badges"
+        android:title="Give Badges" />
+    <item
         android:id="@+id/nav_profile"
         android:title="Organization Profile" />
     <item

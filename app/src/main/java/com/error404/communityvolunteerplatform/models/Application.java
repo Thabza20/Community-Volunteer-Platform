@@ -8,6 +8,7 @@ public class Application {
     public static final String STATUS_APPROVED  = "approved";
     public static final String STATUS_REJECTED  = "rejected";
     public static final String STATUS_WITHDRAWN = "withdrawn";
+    public static final String STATUS_COMPLETED = "completed";
 
     public static final String DEFAULT_REJECTION_MESSAGE = "Application unsuccessful.";
 
@@ -28,6 +29,7 @@ public class Application {
     private String cvParseStatus;        // "pending" | "done" | "failed" | null
     private Timestamp appliedAt;
     private Timestamp updatedAt;
+    private String qrToken;
 
     public Application() {} // Required for Firestore
 
@@ -121,5 +123,8 @@ public class Application {
 
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getQrToken() { return qrToken; }
+    public void setQrToken(String qrToken) { this.qrToken = qrToken; }
 }
 

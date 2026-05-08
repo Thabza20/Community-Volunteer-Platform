@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
@@ -26,6 +27,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class OrganizationDashboardActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -255,6 +259,47 @@ public class OrganizationDashboardActivity extends AppCompatActivity implements 
                 });
     }
 
+    private void handleGiveBadges() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+
+        db.collection("opportunities")
+                .whereEqualTo("orgId", user.getUid())
+                .whereEqualTo("status", "active")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        Toast.makeText(this, "You have no active events to scan for.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    List<String> titles = new ArrayList<>();
+                    List<String> ids = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        titles.add(doc.getString("title"));
+                        ids.add(doc.getId());
+                    }
+
+                    if (ids.size() == 1) {
+                        openScanner(ids.get(0));
+                    } else {
+                        new AlertDialog.Builder(this)
+                                .setTitle("Select Event")
+                                .setItems(titles.toArray(new String[0]), (dialog, which) -> {
+                                    openScanner(ids.get(which));
+                                })
+                                .show();
+                    }
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Error fetching events", Toast.LENGTH_SHORT).show());
+    }
+
+    private void openScanner(String opportunityId) {
+        Intent intent = new Intent(this, GiveBadgesActivity.class);
+        intent.putExtra("opportunityId", opportunityId);
+        startActivity(intent);
+    }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
@@ -263,6 +308,8 @@ public class OrganizationDashboardActivity extends AppCompatActivity implements 
             startActivity(new Intent(this, CreateEventActivity.class));
         } else if (id == R.id.nav_manage_opps) {
             startActivity(new Intent(this, ManageOpportunitiesActivity.class));
+        } else if (id == R.id.nav_give_badges) {
+            handleGiveBadges();
         } else if (id == R.id.nav_logout) {
             mAuth.signOut();
             Intent intent = new Intent(this, LoginActivity.class);

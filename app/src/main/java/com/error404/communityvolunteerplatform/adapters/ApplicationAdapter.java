@@ -35,9 +35,19 @@ public class ApplicationAdapter extends RecyclerView.Adapter<ApplicationAdapter.
         void onWithdrawClick(Application application);
     }
 
+    private OnQrClickListener qrClickListener;
+
+    public interface OnQrClickListener {
+        void onQrClick(Application application);
+    }
+
     public ApplicationAdapter(List<Application> applicationList, OnWithdrawClickListener listener) {
         this.applicationList = applicationList;
         this.withdrawClickListener = listener;
+    }
+
+    public void setOnQrClickListener(OnQrClickListener listener) {
+        this.qrClickListener = listener;
     }
 
     @NonNull
@@ -97,6 +107,17 @@ public class ApplicationAdapter extends RecyclerView.Adapter<ApplicationAdapter.
         } else {
             holder.btnWithdraw.setVisibility(View.GONE);
         }
+
+        if ("approved".equals(status)) {
+            holder.btnShowQr.setVisibility(View.VISIBLE);
+            holder.btnShowQr.setOnClickListener(v -> {
+                if (qrClickListener != null) {
+                    qrClickListener.onQrClick(application);
+                }
+            });
+        } else {
+            holder.btnShowQr.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -112,7 +133,7 @@ public class ApplicationAdapter extends RecyclerView.Adapter<ApplicationAdapter.
     static class ApplicationViewHolder extends RecyclerView.ViewHolder {
         TextView tvOppTitle, tvOrgName, tvAppDate;
         Chip chipStatus;
-        Button btnWithdraw;
+        Button btnWithdraw, btnShowQr;
 
         public ApplicationViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -121,6 +142,7 @@ public class ApplicationAdapter extends RecyclerView.Adapter<ApplicationAdapter.
             tvAppDate = itemView.findViewById(R.id.tvAppDate);
             chipStatus = itemView.findViewById(R.id.chipAppStatus);
             btnWithdraw = itemView.findViewById(R.id.btnWithdraw);
+            btnShowQr = itemView.findViewById(R.id.btnShowQr);
         }
     }
 }

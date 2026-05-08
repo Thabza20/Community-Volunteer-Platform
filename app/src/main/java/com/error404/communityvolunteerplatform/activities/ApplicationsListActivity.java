@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.error404.communityvolunteerplatform.R;
 import com.error404.communityvolunteerplatform.adapters.ApplicationAdapter;
 import com.error404.communityvolunteerplatform.models.Application;
+import android.content.Intent;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -85,6 +86,14 @@ public class ApplicationsListActivity extends AppCompatActivity implements Appli
         else if ("rejected".equals(initialStatus)) tabLayout.getTabAt(3).select();
 
         adapter = new ApplicationAdapter(new ArrayList<>(), this);
+        adapter.setOnQrClickListener(application -> {
+            Intent intent = new Intent(this, QrCodeActivity.class);
+            intent.putExtra("applicationId", application.getApplicationId());
+            intent.putExtra("opportunityId", application.getOpportunityId());
+            // We'll fetch the title in the activity, or pass it if available
+            // Since opportunityTitles is private in adapter, maybe just pass applicationId
+            startActivity(intent);
+        });
         rvApplications.setLayoutManager(new LinearLayoutManager(this));
         rvApplications.setAdapter(adapter);
 
