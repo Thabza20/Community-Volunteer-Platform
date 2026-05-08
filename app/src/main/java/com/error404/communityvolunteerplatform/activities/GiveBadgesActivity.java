@@ -1,14 +1,17 @@
 package com.error404.communityvolunteerplatform.activities;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.error404.communityvolunteerplatform.databinding.ActivityGiveBadgesBinding;
 import com.error404.communityvolunteerplatform.helpers.BadgeAwardHelper;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
 import com.journeyapps.barcodescanner.BarcodeCallback;
@@ -22,6 +25,7 @@ public class GiveBadgesActivity extends AppCompatActivity {
     private String currentEventOpportunityId;
     private FirebaseFirestore db;
     private boolean isProcessing = false;
+    private static final int CAMERA_PERMISSION_REQUEST = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +43,32 @@ public class GiveBadgesActivity extends AppCompatActivity {
         }
 
         binding.toolbar.setNavigationOnClickListener(v -> finish());
-        setupScanner();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            setupScanner();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},
+                    CAMERA_PERMISSION_REQUEST);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+            String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                setupScanner();
+            } else {
+                Toast.makeText(this,
+                        "Camera permission required to scan badges",
+                        Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
     }
 
     private void setupScanner() {
@@ -56,28 +85,35 @@ public class GiveBadgesActivity extends AppCompatActivity {
     }
 
     private void processScannedData(String data) {
-        if (!data.startsWith("CVP::")) {
+        if (isProcessing) return;
+
+        isProcessing = true;
+        binding.barcodeScanner.pause();
+
+        if (data == null || !data.startsWith("CVP::")) {
             Toast.makeText(this, "Invalid QR code", Toast.LENGTH_SHORT).show();
+            resumeScanning();
             return;
         }
 
         String[] parts = data.split("::");
         if (parts.length != 4) {
             Toast.makeText(this, "Invalid QR format", Toast.LENGTH_SHORT).show();
+            resumeScanning();
             return;
         }
 
-        String scannedOppId = parts[1];
-        String volunteerId = parts[2];
+        String scannedOppId  = parts[1];
+        String volunteerId   = parts[2];
         String applicationId = parts[3];
 
         if (!scannedOppId.equals(currentEventOpportunityId)) {
-            Toast.makeText(this, "This QR code is for a different event. Cannot scan.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,
+                    "This QR code is for a different event. Cannot scan.",
+                    Toast.LENGTH_SHORT).show();
+            resumeScanning();
             return;
         }
-
-        isProcessing = true;
-        binding.barcodeScanner.pause();
 
         db.collection("applications").document(applicationId).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -92,9 +128,8 @@ public class GiveBadgesActivity extends AppCompatActivity {
                         showErrorDialog("Application not found.");
                     }
                 })
-                .addOnFailureListener(e -> {
-                    showErrorDialog("Failed to verify application: " + e.getMessage());
-                });
+                .addOnFailureListener(e ->
+                        showErrorDialog("Failed to verify application: " + e.getMessage()));
     }
 
     private void awardBadge(String applicationId, String volunteerId) {
@@ -112,11 +147,13 @@ public class GiveBadgesActivity extends AppCompatActivity {
     }
 
     private void fetchVolunteerNameAndShowSuccess(String volunteerId) {
-        db.collection("users").document(volunteerId).get()
+        db.collection("volunteers").document(volunteerId).get()
                 .addOnSuccessListener(doc -> {
                     String name = "Volunteer";
                     if (doc.exists()) {
-                        name = doc.getString("name");
+                        String first = doc.getString("firstName");
+                        String last  = doc.getString("surname");
+                        if (first != null) name = first + (last != null ? " " + last : "");
                     }
                     showSuccessDialog(name);
                 })
