@@ -132,18 +132,43 @@ public class GiveBadgesActivity extends AppCompatActivity {
                         showErrorDialog("Failed to verify application: " + e.getMessage()));
     }
 
-    private void awardBadge(String applicationId, String volunteerId) {
+    private void awardBadge(String applicationId, String qrVolunteerId) {
         WriteBatch batch = db.batch();
-        batch.update(db.collection("applications").document(applicationId), "status", "completed");
+        batch.update(
+                db.collection("applications").document(applicationId),
+                "status", "completed"
+        );
 
-        batch.commit().addOnSuccessListener(aVoid -> {
-            // Call BadgeAwardHelper to update volunteer stats and award badges
-            BadgeAwardHelper.recordEventCompletion(volunteerId, 1.0, this);
-            
-            fetchVolunteerNameAndShowSuccess(volunteerId);
-        }).addOnFailureListener(e -> {
-            showErrorDialog("Failed to award badge: " + e.getMessage());
-        });
+        batch.commit()
+                .addOnSuccessListener(aVoid -> {
+                    // Re-fetch the application to get the authoritative volunteerId
+                    // stored in Firestore rather than trusting the raw QR string
+                    db.collection("applications").document(applicationId).get()
+                            .addOnSuccessListener(appDoc -> {
+                                String confirmedVolunteerId = null;
+                                if (appDoc.exists()) {
+                                    confirmedVolunteerId = appDoc.getString("volunteerId");
+                                }
+
+                                // Fall back to QR string value if Firestore field is missing
+                                final String volunteerId = (confirmedVolunteerId != null
+                                        && !confirmedVolunteerId.trim().isEmpty())
+                                        ? confirmedVolunteerId.trim()
+                                        : qrVolunteerId.trim();
+
+                                BadgeAwardHelper.recordEventCompletion(
+                                        volunteerId, 1.0, GiveBadgesActivity.this);
+                                fetchVolunteerNameAndShowSuccess(volunteerId);
+                            })
+                            .addOnFailureListener(e -> {
+                                // Firestore re-fetch failed — fall back to QR value
+                                BadgeAwardHelper.recordEventCompletion(
+                                        qrVolunteerId.trim(), 1.0, GiveBadgesActivity.this);
+                                fetchVolunteerNameAndShowSuccess(qrVolunteerId.trim());
+                            });
+                })
+                .addOnFailureListener(e ->
+                        showErrorDialog("Failed to award badge: " + e.getMessage()));
     }
 
     private void fetchVolunteerNameAndShowSuccess(String volunteerId) {
