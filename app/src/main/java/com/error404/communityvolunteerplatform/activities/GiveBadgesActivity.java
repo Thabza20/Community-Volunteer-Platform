@@ -3,6 +3,7 @@ package com.error404.communityvolunteerplatform.activities;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -155,6 +156,20 @@ public class GiveBadgesActivity extends AppCompatActivity {
                                         && !confirmedVolunteerId.trim().isEmpty())
                                         ? confirmedVolunteerId.trim()
                                         : qrVolunteerId.trim();
+
+                                Log.d("GiveBadges", "About to award badge to volunteerId='" + volunteerId + "'");
+
+                                // TEMPORARY DIAGNOSTIC — remove after confirming
+                                db.collection("volunteers").document(volunteerId).get()
+                                        .addOnSuccessListener(snap -> {
+                                            Log.d("GiveBadges", "volunteers/" + volunteerId
+                                                    + " exists=" + snap.exists());
+                                        });
+                                db.collection("users").document(volunteerId).get()
+                                        .addOnSuccessListener(snap -> {
+                                            Log.d("GiveBadges", "users/" + volunteerId
+                                                    + " exists=" + snap.exists());
+                                        });
 
                                 BadgeAwardHelper.recordEventCompletion(
                                         volunteerId, 1.0, GiveBadgesActivity.this);

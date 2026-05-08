@@ -7,7 +7,6 @@
     <item android:id="@+id/nav_my_applications" android:title="My Applications" />
     <item android:id="@+id/nav_passport" android:title="My Passport" />
     <item android:id="@+id/nav_chats" android:title="Chats" />
-    <item android:id="@+id/nav_profile" android:title="Profile" />
     <item android:id="@+id/nav_logout" android:title="Logout" />
 
 </menu>
