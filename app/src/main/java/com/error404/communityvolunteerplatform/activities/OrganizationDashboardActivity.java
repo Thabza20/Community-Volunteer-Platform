@@ -139,7 +139,7 @@ public class OrganizationDashboardActivity extends AppCompatActivity implements 
                             if (orgName == null || orgName.isEmpty()) {
                                 orgName = documentSnapshot.getString("organizationName");
                             }
-                            
+
                             String logoUrl = documentSnapshot.getString("logoUrl");
 
                             if (orgName != null && !orgName.isEmpty()) {
@@ -200,6 +200,7 @@ public class OrganizationDashboardActivity extends AppCompatActivity implements 
             }
         }
 
+        // CONNECTED: Navigates to OrganizationProfileActivity when the header is clicked
         if (headerView != null) {
             headerView.setOnClickListener(v -> {
                 startActivity(new Intent(OrganizationDashboardActivity.this, OrganizationProfileActivity.class));
@@ -310,6 +311,8 @@ public class OrganizationDashboardActivity extends AppCompatActivity implements 
             startActivity(new Intent(this, ManageOpportunitiesActivity.class));
         } else if (id == R.id.nav_give_badges) {
             handleGiveBadges();
+        } else if (id == R.id.nav_profile) {
+            startActivity(new Intent(this, OrganizationProfileActivity.class));
         } else if (id == R.id.nav_logout) {
             mAuth.signOut();
             Intent intent = new Intent(this, LoginActivity.class);
