@@ -36,8 +36,8 @@ public class AiChatbotActivity extends AppCompatActivity {
     private ImageButton btnSend;
     private ProgressBar pbLoading;
     private ChatAdapter adapter;
-    private List<AiChatMessage> messages = new ArrayList<>();
-    private List<Map<String, String>> conversationHistory = new ArrayList<>();
+    private final List<AiChatMessage> messages = new ArrayList<>();
+    private final List<Map<String, String>> conversationHistory = new ArrayList<>();
     private String opportunitiesContext = "";
     private String volunteerId;
 
@@ -51,7 +51,7 @@ public class AiChatbotActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         rvChat = findViewById(R.id.rv_chat);
         etMessage = findViewById(R.id.et_message);
@@ -63,6 +63,13 @@ public class AiChatbotActivity extends AppCompatActivity {
         adapter = new ChatAdapter(messages);
         rvChat.setLayoutManager(new LinearLayoutManager(this));
         rvChat.setAdapter(adapter);
+
+        // Scroll to bottom when keyboard appears
+        rvChat.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            if (bottom < oldBottom && !messages.isEmpty()) {
+                rvChat.postDelayed(() -> rvChat.smoothScrollToPosition(messages.size() - 1), 100);
+            }
+        });
 
         loadContextAndWelcome();
 

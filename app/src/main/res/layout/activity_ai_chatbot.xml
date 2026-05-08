@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_main">
+    android:background="@color/background_main"
+    android:orientation="vertical">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"
@@ -19,28 +20,37 @@
             app:titleTextColor="@color/white" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_chat"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/input_area"
-        android:layout_below="@+id/app_bar"
-        android:clipToPadding="false"
-        android:padding="8dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-    <ProgressBar
-        android:id="@+id/pb_loading"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:visibility="gone" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_chat"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="8dp" />
+
+        <ProgressBar
+            android:id="@+id/pb_loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0" />
 
     <LinearLayout
         android:id="@+id/input_area"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:background="@color/white"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="8dp">
 
@@ -49,10 +59,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="@android:color/transparent"
             android:hint="Ask me anything..."
+            android:inputType="textCapSentences|textMultiLine"
             android:maxLines="4"
-            android:padding="12dp"
-            android:background="@android:color/transparent" />
+            android:padding="12dp" />
 
         <ImageButton
             android:id="@+id/btn_send"
@@ -64,4 +75,4 @@
             app:tint="@color/primary_purple" />
     </LinearLayout>
 
-</RelativeLayout>
+</LinearLayout>

@@ -163,8 +163,10 @@
 
         <activity
             android:name=".activities.AiChatbotActivity"
+            android:exported="false"
             android:label="Volunteer Assistant"
-            android:parentActivityName=".activities.VolunteerDashboardActivity" />
+            android:parentActivityName=".activities.VolunteerDashboardActivity"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".activities.OrgAnalyticsActivity"

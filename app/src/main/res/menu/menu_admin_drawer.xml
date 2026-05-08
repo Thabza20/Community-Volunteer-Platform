@@ -3,7 +3,7 @@
 
     <item
         android:id="@+id/nav_admin_dashboard"
-        android:icon="@android:drawable/ic_menu_today"
+        android:icon="@android:drawable/ic_menu_info_details"
         android:title="@string/admin_dashboard" />
     <item
         android:id="@+id/nav_manage_users"
@@ -11,11 +11,11 @@
         android:title="@string/manage_users" />
     <item
         android:id="@+id/nav_manage_orgs"
-        android:icon="@android:drawable/ic_menu_gallery"
+        android:icon="@android:drawable/ic_menu_agenda"
         android:title="@string/manage_organisations" />
     <item
         android:id="@+id/nav_blocked_users"
-        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        android:icon="@android:drawable/ic_delete"
         android:title="@string/blocked_users" />
     <item
         android:id="@+id/nav_admin_chats"

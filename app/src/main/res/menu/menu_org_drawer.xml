@@ -3,11 +3,11 @@
 
     <item
         android:id="@+id/nav_create_opp"
-        android:icon="@android:drawable/ic_menu_add"
+        android:icon="@android:drawable/ic_input_add"
         android:title="@string/create_opportunity" />
     <item
         android:id="@+id/nav_manage_opps"
-        android:icon="@android:drawable/ic_menu_manage"
+        android:icon="@android:drawable/ic_menu_preferences"
         android:title="@string/manage_opportunities" />
     <item
         android:id="@+id/nav_give_badges"
