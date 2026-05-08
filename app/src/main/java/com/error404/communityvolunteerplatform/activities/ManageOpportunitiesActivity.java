@@ -75,6 +75,12 @@ public class ManageOpportunitiesActivity extends AppCompatActivity {
 
             @Override
             public void onEditClick(Opportunity opportunity) {
+                if (isOpportunityPastDue(opportunity)) {
+                    Toast.makeText(ManageOpportunitiesActivity.this,
+                            "This opportunity has passed and can no longer be edited.",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
                 Intent intent = new Intent(ManageOpportunitiesActivity.this, CreateEventActivity.class);
                 intent.putExtra("EDIT_MODE", true);
                 intent.putExtra("OPPORTUNITY_ID", opportunity.getOpportunityId());
@@ -105,6 +111,16 @@ public class ManageOpportunitiesActivity extends AppCompatActivity {
         });
 
         loadOpportunities();
+    }
+
+    private boolean isOpportunityPastDue(Opportunity opportunity) {
+        Object dateObj = opportunity.getEventDate();
+        java.util.Date eventDate = null;
+        if (dateObj instanceof com.google.firebase.Timestamp) {
+            eventDate = ((com.google.firebase.Timestamp) dateObj).toDate();
+        }
+        if (eventDate == null) return false;
+        return eventDate.before(new java.util.Date());
     }
 
     private void loadOpportunities() {

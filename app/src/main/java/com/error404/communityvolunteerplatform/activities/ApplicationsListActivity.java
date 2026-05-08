@@ -201,21 +201,57 @@ public class ApplicationsListActivity extends AppCompatActivity implements Appli
 
     @Override
     public void onWithdrawClick(Application application) {
-        new AlertDialog.Builder(this)
-                .setTitle("Withdraw Application")
-                .setMessage("Are you sure you want to withdraw this application?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    Map<String, Object> updates = new HashMap<>();
-                    updates.put("status", "withdrawn");
-                    updates.put("withdrawnStatus", true);
-                    updates.put("updatedAt", Timestamp.now());
+        handleWithdraw(application);
+    }
 
-                    db.collection("applications").document(application.getApplicationId())
-                            .update(updates)
-                            .addOnSuccessListener(aVoid -> Toast.makeText(this, "Withdrawn successfully", Toast.LENGTH_SHORT).show());
+    private void handleWithdraw(Application application) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Withdraw Application")
+                .setMessage("Are you sure you want to withdraw from this opportunity? Your spot will be released.")
+                .setPositiveButton("Withdraw", (dialog, which) -> {
+                    performWithdraw(application);
                 })
-                .setNegativeButton("No", null)
+                .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void performWithdraw(Application application) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Step 1: Delete the application document entirely
+        db.collection("applications").document(application.getApplicationId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+
+                    // Step 2: Only decrement slotsFilled if the application
+                    // was approved (meaning a slot was actually taken)
+                    if ("approved".equals(application.getStatus())) {
+                        db.collection("opportunities")
+                                .document(application.getOpportunityId())
+                                .update("slotsFilled",
+                                        com.google.firebase.firestore.FieldValue.increment(-1))
+                                .addOnSuccessListener(v -> {
+                                    Toast.makeText(this,
+                                            "Withdrawn successfully. Your spot has been released.",
+                                            Toast.LENGTH_LONG).show();
+                                    // loadApplications(); // In this activity, listenToApplications handles updates
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this,
+                                            "Withdrawn but failed to release slot: " + e.getMessage(),
+                                            Toast.LENGTH_LONG).show();
+                                });
+                    } else {
+                        // Pending or rejected — no slot to return
+                        Toast.makeText(this,
+                                "Application withdrawn successfully.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this,
+                                "Failed to withdraw: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show());
     }
 
     private void checkNotificationPermission() {

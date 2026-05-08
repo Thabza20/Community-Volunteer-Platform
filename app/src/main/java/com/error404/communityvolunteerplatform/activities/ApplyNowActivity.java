@@ -23,6 +23,7 @@ import com.error404.communityvolunteerplatform.helpers.NotificationHelper;
 import com.error404.communityvolunteerplatform.models.Application;
 import com.error404.communityvolunteerplatform.models.Opportunity;
 import com.error404.communityvolunteerplatform.models.Volunteer;
+import com.error404.communityvolunteerplatform.activities.VolunteerDashboardActivity;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputEditText;
@@ -93,6 +94,15 @@ public class ApplyNowActivity extends AppCompatActivity {
         btnGenerateCoverLetter = findViewById(R.id.btnGenerateCoverLetter);
         pbAiLetter = findViewById(R.id.pbAiLetter);
 
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbarApply);
+        if (toolbar != null) {
+            setSupportActionBar(toolbar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setTitle("");
+            }
+        }
+
         // Conditional fields
         llExperienceSection = findViewById(R.id.llExperienceSection);
         etRefName = findViewById(R.id.etRefName);
@@ -160,6 +170,12 @@ public class ApplyNowActivity extends AppCompatActivity {
                 });
     }
 
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
+
     private void generateAiCoverLetter() {
         if (volunteer == null || opportunity == null) {
             Toast.makeText(this, "Still loading data...", Toast.LENGTH_SHORT).show();
@@ -190,6 +206,17 @@ public class ApplyNowActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    private boolean isEventPastDue() {
+        if (opportunity == null) return false;
+        Object dateObj = opportunity.getEventDate();
+        java.util.Date eventDate = null;
+        if (dateObj instanceof com.google.firebase.Timestamp) {
+            eventDate = ((com.google.firebase.Timestamp) dateObj).toDate();
+        }
+        if (eventDate == null) return false;
+        return eventDate.before(new java.util.Date());
     }
 
     private void populateUI() {
@@ -233,7 +260,11 @@ public class ApplyNowActivity extends AppCompatActivity {
 
         // Banner and Button State
         boolean canApply = true;
-        if (hasApplied) {
+        if (isEventPastDue()) {
+            tvBanner.setText("This opportunity has already passed and is no longer accepting applications.");
+            tvBanner.setVisibility(View.VISIBLE);
+            canApply = false;
+        } else if (hasApplied) {
             tvBanner.setText("You have already applied for this opportunity");
             tvBanner.setVisibility(View.VISIBLE);
             canApply = false;
@@ -376,7 +407,10 @@ public class ApplyNowActivity extends AppCompatActivity {
                     );
 
                     BadgeAwardHelper.checkAndAward(currentUserId, this);
-                    Toast.makeText(this, "Application submitted!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Application submitted successfully!", Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(ApplyNowActivity.this, VolunteerDashboardActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
                     finish();
                 })
                 .addOnFailureListener(e -> {

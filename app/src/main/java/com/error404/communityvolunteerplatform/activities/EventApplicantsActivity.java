@@ -81,33 +81,40 @@ public class EventApplicantsActivity extends AppCompatActivity {
         rvApplicants.setAdapter(adapter);
     }
 
+    private com.google.firebase.firestore.ListenerRegistration applicantsListener;
+
     private void loadApplicants() {
         progressBar.setVisibility(View.VISIBLE);
-        db.collection("applications")
+        if (applicantsListener != null) applicantsListener.remove();
+
+        applicantsListener = db.collection("applications")
                 .whereEqualTo("opportunityId", opportunityId)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addSnapshotListener((queryDocumentSnapshots, error) -> {
                     progressBar.setVisibility(View.GONE);
+                    if (error != null || queryDocumentSnapshots == null) {
+                        Toast.makeText(this, "Error loading applicants", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     applicationList.clear();
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Application app = doc.toObject(Application.class);
                         app.setApplicationId(doc.getId());
                         applicationList.add(app);
                     }
-                    
-                    // Local Sort by appliedAt
                     applicationList.sort((a1, a2) -> {
                         if (a1.getAppliedAt() == null || a2.getAppliedAt() == null) return 0;
                         return a2.getAppliedAt().compareTo(a1.getAppliedAt());
                     });
-
                     adapter.notifyDataSetChanged();
-                    tvNoApplicants.setVisibility(applicationList.isEmpty() ? View.VISIBLE : View.GONE);
-                })
-                .addOnFailureListener(e -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Error loading applicants", Toast.LENGTH_SHORT).show();
+                    tvNoApplicants.setVisibility(
+                            applicationList.isEmpty() ? View.VISIBLE : View.GONE);
                 });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (applicantsListener != null) applicantsListener.remove();
     }
 
     private void updateApplicationStatus(Application application, String newStatus) {
