@@ -71,4 +71,19 @@
     <string name="status_canceled">Canceled</string>
     <string name="hint_required_qualifications">Enter required qualifications</string>
     <string name="error_qualifications_required">Please enter the required qualifications.</string>
+    <string name="browse_opportunities">Browse Opportunities</string>
+    <string name="for_you">For You</string>
+    <string name="skills_gap_analysis">Skills Gap Analysis</string>
+    <string name="my_applications">My Applications</string>
+    <string name="my_passport">My Passport</string>
+    <string name="chats">Chats</string>
+    <string name="logout">Logout</string>
+    <string name="create_opportunity">Create New Opportunity</string>
+    <string name="manage_opportunities">Manage Opportunities</string>
+    <string name="give_badges">Give Badges</string>
+    <string name="organization_profile">Organization Profile</string>
+    <string name="admin_dashboard">Admin Dashboard</string>
+    <string name="manage_users">Manage Users</string>
+    <string name="manage_organisations">Manage Organisations</string>
+    <string name="blocked_users">Blocked Users</string>
 </resources>

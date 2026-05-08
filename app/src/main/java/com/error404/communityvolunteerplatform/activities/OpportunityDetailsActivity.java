@@ -17,6 +17,11 @@ import com.error404.communityvolunteerplatform.models.Volunteer;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.Timestamp;
+import com.error404.communityvolunteerplatform.models.Opportunity;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OpportunityDetailsActivity extends AppCompatActivity {
 
@@ -27,6 +32,7 @@ public class OpportunityDetailsActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private String opportunityId;
     private String orgId;
+    private Opportunity opportunity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,13 +66,7 @@ public class OpportunityDetailsActivity extends AppCompatActivity {
         btnApply = findViewById(R.id.btnApply);
         pbLoading = findViewById(R.id.pbDetailsLoading);
 
-        findViewById(R.id.btnMessageOrg).setOnClickListener(v -> {
-            if (orgId != null) {
-                Intent intent = new Intent(this, MessagesActivity.class);
-                intent.putExtra("otherUserId", orgId);
-                startActivity(intent);
-            }
-        });
+        findViewById(R.id.btnMessageOrg).setOnClickListener(v -> openChat());
 
         loadOpportunityDetails();
         checkIfAlreadyApplied();
@@ -76,6 +76,75 @@ public class OpportunityDetailsActivity extends AppCompatActivity {
             intent.putExtra("OPPORTUNITY_ID", opportunityId);
             startActivity(intent);
         });
+    }
+
+    private void openChat() {
+        String currentUserId = com.google.firebase.auth.FirebaseAuth
+                .getInstance().getCurrentUser() != null
+                ? com.google.firebase.auth.FirebaseAuth
+                        .getInstance().getCurrentUser().getUid()
+                : null;
+
+        if (currentUserId == null) {
+            Toast.makeText(this, "Please log in to use chat",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (opportunity == null || opportunity.getOrgId() == null) {
+            Toast.makeText(this, "Organisation info not loaded yet",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String orgId = opportunity.getOrgId();
+
+        // Build a deterministic chat ID so the same two users
+        // always land in the same chat document
+        String chatId = currentUserId.compareTo(orgId) < 0
+                ? currentUserId + "_" + orgId
+                : orgId + "_" + currentUserId;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        com.google.firebase.firestore.DocumentReference chatRef =
+                db.collection("chats").document(chatId);
+
+        chatRef.get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) {
+                        // Chat already exists — open it
+                        navigateToChat(chatId, orgId);
+                    } else {
+                        // Create new chat document with participants array
+                        java.util.Map<String, Object> chatData = new java.util.HashMap<>();
+                        chatData.put("participants",
+                                java.util.Arrays.asList(currentUserId, orgId));
+                        chatData.put("lastMessage", "");
+                        chatData.put("lastMessageTime",
+                                com.google.firebase.Timestamp.now());
+                        chatData.put("volunteerId", currentUserId);
+                        chatData.put("orgId", orgId);
+
+                        chatRef.set(chatData)
+                                .addOnSuccessListener(aVoid ->
+                                        navigateToChat(chatId, orgId))
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(this,
+                                                "Failed to create chat: " + e.getMessage(),
+                                                Toast.LENGTH_LONG).show());
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this,
+                                "Failed to open chat: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show());
+    }
+
+    private void navigateToChat(String chatId, String orgId) {
+        Intent intent = new Intent(this, MessagesActivity.class);
+        intent.putExtra("chatId", chatId);
+        intent.putExtra("otherUserId", orgId);
+        startActivity(intent);
     }
 
     private void checkIfAlreadyApplied() {
@@ -159,6 +228,10 @@ public class OpportunityDetailsActivity extends AppCompatActivity {
                 .addOnSuccessListener(doc -> {
                     if (pbLoading != null) pbLoading.setVisibility(View.GONE);
                     if (doc.exists()) {
+                        opportunity = doc.toObject(Opportunity.class);
+                        if (opportunity != null) {
+                            opportunity.setOpportunityId(doc.getId());
+                        }
                         orgId = doc.getString("orgId");
                         tvTitle.setText(doc.getString("title"));
                         tvOrgName.setText(doc.getString("orgName"));

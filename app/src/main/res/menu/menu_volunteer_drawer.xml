@@ -1,12 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:id="@+id/nav_browse_opportunities" android:title="Browse Opportunities" />
-    <item android:id="@+id/nav_ai_recommendations" android:title="For You" />
-    <item android:id="@+id/nav_skills_gap" android:title="Skills Gap Analysis" />
-    <item android:id="@+id/nav_my_applications" android:title="My Applications" />
-    <item android:id="@+id/nav_passport" android:title="My Passport" />
-    <item android:id="@+id/nav_chats" android:title="Chats" />
-    <item android:id="@+id/nav_logout" android:title="Logout" />
+    <item
+        android:id="@+id/nav_browse_opportunities"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/browse_opportunities" />
+    <item
+        android:id="@+id/nav_ai_recommendations"
+        android:icon="@android:drawable/ic_menu_star"
+        android:title="@string/for_you" />
+    <item
+        android:id="@+id/nav_skills_gap"
+        android:icon="@android:drawable/ic_menu_compass"
+        android:title="@string/skills_gap_analysis" />
+    <item
+        android:id="@+id/nav_my_applications"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:title="@string/my_applications" />
+    <item
+        android:id="@+id/nav_passport"
+        android:icon="@drawable/ic_badge_profile"
+        android:title="@string/my_passport" />
+    <item
+        android:id="@+id/nav_chats"
+        android:icon="@android:drawable/ic_menu_send"
+        android:title="@string/chats" />
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="@string/edit_profile" />
+    <item
+        android:id="@+id/nav_logout"
+        android:icon="@android:drawable/ic_lock_power_off"
+        android:title="@string/logout" />
 
 </menu>

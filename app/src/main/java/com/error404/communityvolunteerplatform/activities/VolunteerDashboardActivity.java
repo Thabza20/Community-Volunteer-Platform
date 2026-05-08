@@ -338,7 +338,7 @@ public class VolunteerDashboardActivity extends AppCompatActivity
         } else if (id == R.id.nav_chats) {
             startActivity(new Intent(this, RecentChatsActivity.class));
         } else if (id == R.id.nav_profile) {
-            Toast.makeText(this, "Profile", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, EditProfileActivity.class));
         } else if (id == R.id.nav_logout) {
             UsersListActivity.cachedUsers = null;
             auth.signOut();

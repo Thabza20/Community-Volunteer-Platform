@@ -1,11 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:id="@+id/nav_admin_dashboard" android:title="Dashboard" />
-    <item android:id="@+id/nav_manage_users" android:title="Manage Users" />
-    <item android:id="@+id/nav_manage_orgs" android:title="Manage Organisations" />
-    <item android:id="@+id/nav_blocked_users" android:title="Blocked Users" />
-    <item android:id="@+id/nav_admin_chats" android:title="Chats" />
-    <item android:id="@+id/nav_admin_logout" android:title="Logout" />
+    <item
+        android:id="@+id/nav_admin_dashboard"
+        android:icon="@android:drawable/ic_menu_today"
+        android:title="@string/admin_dashboard" />
+    <item
+        android:id="@+id/nav_manage_users"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="@string/manage_users" />
+    <item
+        android:id="@+id/nav_manage_orgs"
+        android:icon="@android:drawable/ic_menu_gallery"
+        android:title="@string/manage_organisations" />
+    <item
+        android:id="@+id/nav_blocked_users"
+        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        android:title="@string/blocked_users" />
+    <item
+        android:id="@+id/nav_admin_chats"
+        android:icon="@android:drawable/ic_menu_send"
+        android:title="@string/chats" />
+    <item
+        android:id="@+id/nav_admin_logout"
+        android:icon="@android:drawable/ic_lock_power_off"
+        android:title="@string/logout" />
 
 </menu>

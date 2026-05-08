@@ -311,6 +311,8 @@ public class OrganizationDashboardActivity extends AppCompatActivity implements 
             startActivity(new Intent(this, ManageOpportunitiesActivity.class));
         } else if (id == R.id.nav_give_badges) {
             handleGiveBadges();
+        } else if (id == R.id.nav_chats) {
+            startActivity(new Intent(this, RecentChatsActivity.class));
         } else if (id == R.id.nav_profile) {
             startActivity(new Intent(this, OrganizationProfileActivity.class));
         } else if (id == R.id.nav_logout) {

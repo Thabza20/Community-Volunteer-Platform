@@ -101,7 +101,6 @@ public class PassportActivity extends AppCompatActivity {
         }
 
         loadPassportData();
-        loadImpactScore();
         btnChangePhoto.setOnClickListener(v -> openImagePicker());
         btnRemovePhoto.setOnClickListener(v -> removePhoto());
         btnEditProfile.setOnClickListener(v -> {
@@ -130,6 +129,10 @@ public class PassportActivity extends AppCompatActivity {
                 new GroqRecommendationHelper.OnImpactListener() {
                     @Override
                     public void onSuccess(String summary, int score) {
+                        if (score <= 0 && (summary == null || summary.trim().isEmpty())) {
+                            cvImpactCard.setVisibility(View.GONE);
+                            return;
+                        }
                         cvImpactCard.setVisibility(View.VISIBLE);
                         tvPassportImpactScore.setText(String.valueOf(score));
                         pbPassportImpact.setProgress(score);
@@ -203,6 +206,7 @@ public class PassportActivity extends AppCompatActivity {
                     if (currentVolunteer != null) {
                         currentVolunteer.setUserId(doc.getId());
                         populatePassport(currentVolunteer);
+                        loadImpactScore(); // ← moved here, fires after data is confirmed
                     }
                 })
                 .addOnFailureListener(e ->
